@@ -1,4 +1,3 @@
 # Easy WEB navigation fullstack project
 
-It is like a storage for all references of web-sites you need with an additional functionality. 
-Main benefit of remaking "Easy WEB navigation" as a fullstack application is providing wide availability to users
+It is like a memory for all the references of the websites you need with an additional functionality. The main advantage of rewriting "Easy WEB navigation" as a full-stack application is its wide availability to users.
