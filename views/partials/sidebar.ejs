@@ -1,0 +1,35 @@
+<div class="group-aside-button">
+  <label>
+    <input type="checkbox" id="toggle-group-aside" />
+    <div></div>
+    <div></div>
+    <div></div>
+  </label>
+</div>
+<aside>
+  <label for="dark-theme">Change theme</label>
+  <label id="addNewLinkButton" for="createLinkState"> Add new link </label>
+  <fieldset>
+    <legend>Group filter <button>+</button></legend>
+    <label
+      ><input checked type="radio" name="group" data-group="All" />
+      <span>All</span></label
+    >
+    <label
+      ><input type="radio" name="group" data-group="Ungrouped" /><span
+        >Ungrouped</span
+      >
+    </label>
+  </fieldset>
+  <% if (app == "local") { %>
+  <a href="/sign-in">Sign in</a>
+  <a href="/register">Register</a>
+  <% } else { %>
+  <a href="/users/<%= userId %>"><%= username %></a>
+  <form action="/users/<%= userId %>?_method=PUT" method="POST">
+    <textarea name="linksStorage" id="linksStorage"></textarea>
+    <input type="text" name="allFilterGroups" id="allFilterGroups" />
+  </form>
+  <button id="synchronize-data-button">Synchronize data with account</button>
+  <% } %>
+</aside>

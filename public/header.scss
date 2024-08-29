@@ -1,0 +1,68 @@
+@charset "UTF-8";
+@use "sass:math";
+$GREEN: #99cea5;
+$GREY: #5e5e5e;
+@function setControllableSize($size, $var: var(--scale-08-below-650px)) {
+  @return calc($size * $var);
+}
+:root {
+  --scale-08-below-650px: 1;
+  --scale-03-below-650px: 1;
+}
+@media (max-width: 650px) {
+  :root {
+    --scale-08-below-650px: 0.8;
+    --scale-03-below-650px: 0.3;
+  }
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  overflow-x: hidden;
+  padding-top: setControllableSize(100px, var(--scale-08-below-650px));
+}
+header {
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  background-color: $GREEN;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-block: setControllableSize(20px, var(--scale-03-below-650px));
+  padding-left: setControllableSize(70px, var(--scale-03-below-650px));
+  padding-right: setControllableSize(70px, var(--scale-08-below-650px));
+}
+h1 {
+  color: $GREY;
+  font-size: setControllableSize(30px);
+}
+nav {
+  display: flex;
+  gap: 20px;
+}
+#dark-theme:checked {
+  ~ header {
+    background-color: black;
+    .find-reference_input {
+      background-color: white;
+    }
+    h1 {
+      color: white;
+    }
+  }
+}
+input {
+  &:focus {
+    outline: none;
+  }
+  border: none;
+  -webkit-text-fill-color: black;
+  background-color: transparent;
+}

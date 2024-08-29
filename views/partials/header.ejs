@@ -1,0 +1,26 @@
+<input type="checkbox" id="dark-theme" />
+<script>
+  document.getElementById("dark-theme").checked =
+    JSON.parse(localStorage.getItem("dark-theme")) || false;
+</script>
+<link rel="stylesheet" href="/header.css" />
+<header>
+  <h1>Easy WEB navigation</h1>
+  <% if (locals.app) { %>
+  <nav>
+    <div class="find-reference_input">
+      <input
+        list="find-reference_options"
+        type="search"
+        placeholder="Quick Search"
+      />
+      <img alt="search icon" src="/search-icon.png" id="search-button" />
+    </div>
+    <datalist id="find-reference_options">
+      <option value="first"></option>
+      <option value="second"></option>
+    </datalist>
+  </nav>
+
+  <% } %>
+</header>

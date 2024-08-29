@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="author" content="Daniel Diril" />
+    <meta
+      name="description"
+      content="Are you tired from having multitude important websites and being unable to easily navigate between them? Then this application is your choice! Create your custom links, separate them by groups and use them whenever you want!"
+    />
+    <meta name="og:title" property="og:title" content="Easy WEB navigation" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Easy WEB navigation</title>
+    <link rel="stylesheet" href="/app.css" />
+    <link rel="icon" href="/favicon.ico.webp" />
+    <script defer src="/src/client/main.ts"></script>
+  </head>
+  <body>
+    <% if (app === "synchronized") { %>
+    <p style="display: none"><%= linksStorage %></p>
+    <p style="display: none"><%= allFilterGroups %></p>
+    <script>
+      sessionStorage.setItem(
+        "db",
+        document.querySelector("p:nth-of-type(1)").innerHTML
+      );
+      sessionStorage.setItem(
+        "allFilterGroups",
+        document.querySelector("p:nth-of-type(2)").innerHTML
+      );
+      document.querySelector("p:nth-of-type(1)").remove();
+      document.querySelector("p:nth-of-type(1)").remove();
+    </script>
+    <% } %> <%- include('./partials/header.ejs') %> <%-
+    include('./partials/sidebar.ejs') %>
+    <main data-display="<%= app %>"></main>
+    <input type="radio" name="link-settings" id="createLinkState" />
+    <section>
+      <div class="configure-link">
+        <input id="linkName" type="text" placeholder="Name" />
+        <textarea id="linkURL" placeholder="URL"></textarea>
+        <input
+          autocomplete="off"
+          type="search"
+          list="linkGroupSelect"
+          id="linkGroupInput"
+        />
+        <datalist id="linkGroupSelect">
+          <option value="Ungrouped">Ungrouped</option>
+        </datalist>
+        <button id="edit-link-button"></button>
+        <button id="delete-link-button">Delete</button>
+      </div>
+    </section>
+  </body>
+</html>

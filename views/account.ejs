@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body style="text-align: center">
+    <header style="display: flex; justify-content: space-around; width: 100vw">
+      <p>
+        Go to <a href="/main-app">MAIN</a> or to
+        <a href="/local-app">local</a> app
+      </p>
+      <a href="/sign-in">Change account - sign in</a
+      ><a href="/register">Create new account - register</a>
+      <a href="/logout">Logout</a>
+      <a href="/users/delete/<%= userId  %>" style="color: red"
+        >Delete account</a
+      >
+    </header>
+    <h1><%= username %></h1>
+  </body>
+</html>

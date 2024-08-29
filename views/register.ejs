@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>Register</h1>
+    <form action="/users" method="POST">
+      <label
+        ><% if (attempt == "again") { %> Create ANOTHER username <% } else {%>
+        Create a username <% } %>
+        <input type="text" required name="username" minlength="2" />
+      </label>
+      <label
+        >Create password
+        <input type="text" required minlength="4" name="password" />
+      </label>
+      <input type="submit" value="submit" />
+    </form>
+  </body>
+</html>
