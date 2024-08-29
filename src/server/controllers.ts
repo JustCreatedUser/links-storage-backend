@@ -44,6 +44,7 @@ export function renderLocalApp(_: any, res: any) {
   const app: renderedApp = "local";
   res.render("main-app", {
     app,
+    headerTitle: "Local app",
   });
 }
 export async function renderMainApp(req: any, res: any) {
@@ -65,6 +66,7 @@ export async function renderMainApp(req: any, res: any) {
       linksStorage,
       allFilterGroups,
       userId,
+      headerTitle: "Main app",
     });
   } catch (error: any) {
     res.status(401).redirect("/sign-in");
@@ -115,7 +117,7 @@ export async function goToAccountPage(req: any, res: any) {
           throw new Error("NO USER");
         }
       })();
-    res.render("account", { userId, username });
+    res.render("account", { userId, headerTitle: "Account - " + username });
   } catch (error: any) {
     console.log(error.message);
   }

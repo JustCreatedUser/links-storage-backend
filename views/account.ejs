@@ -4,9 +4,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <style>
+      input[type="checkbox"] {
+        display: none;
+      }
+      a {
+        color: green;
+      }
+      main {
+        width: 100vw;
+        display: flex;
+        gap: 50px;
+        justify-content: center;
+      }
+    </style>
   </head>
   <body style="text-align: center">
-    <header style="display: flex; justify-content: space-around; width: 100vw">
+    <%- include('./partials/header.ejs') %> <%-
+    include('./partials/sidebar.ejs') %>
+    <main>
       <p>
         Go to <a href="/main-app">MAIN</a> or to
         <a href="/local-app">local</a> app
@@ -14,10 +30,9 @@
       <a href="/sign-in">Change account - sign in</a
       ><a href="/register">Create new account - register</a>
       <a href="/logout">Logout</a>
-      <a href="/users/delete/<%= userId  %>" style="color: red"
-        >Delete account</a
-      >
-    </header>
-    <h1><%= username %></h1>
+      <form action="/users/<%= userId  %>?_method=DELETE" method="POST">
+        <input type="submit" value="Delete account" style="color: red" />
+      </form>
+    </main>
   </body>
 </html>

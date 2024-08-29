@@ -1,11 +1,11 @@
+<link rel="stylesheet" type="text/css" href="/header.css" />
 <input type="checkbox" id="dark-theme" />
 <script>
   document.getElementById("dark-theme").checked =
     JSON.parse(localStorage.getItem("dark-theme")) || false;
 </script>
-<link rel="stylesheet" href="/header.css" />
 <header>
-  <h1>Easy WEB navigation</h1>
+  <h1><%= locals.headerTitle %></h1>
   <% if (locals.app) { %>
   <nav>
     <div class="find-reference_input">

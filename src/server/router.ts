@@ -22,7 +22,7 @@ router
     }
     if (req.params.status == "again") {
     }
-    res.render("sign-in");
+    res.render("sign-in", { headerTitle: "Sign in" });
   })
   .get("/register", (req, res) => {
     const attempt: registerAttempt =

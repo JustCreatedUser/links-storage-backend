@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="/sidebar.css" />
 <div class="group-aside-button">
   <label>
     <input type="checkbox" id="toggle-group-aside" />
@@ -8,7 +9,9 @@
 </div>
 <aside>
   <label for="dark-theme">Change theme</label>
+  <% if (locals.app) { %>
   <label id="addNewLinkButton" for="createLinkState"> Add new link </label>
+
   <fieldset>
     <legend>Group filter <button>+</button></legend>
     <label
@@ -21,15 +24,15 @@
       >
     </label>
   </fieldset>
-  <% if (app == "local") { %>
+  <% if (locals.app === "local") { %>
   <a href="/sign-in">Sign in</a>
   <a href="/register">Register</a>
-  <% } else { %>
+  <% } else if (locals.app === "synchronized"){ %>
   <a href="/users/<%= userId %>"><%= username %></a>
   <form action="/users/<%= userId %>?_method=PUT" method="POST">
     <textarea name="linksStorage" id="linksStorage"></textarea>
     <input type="text" name="allFilterGroups" id="allFilterGroups" />
   </form>
   <button id="synchronize-data-button">Synchronize data with account</button>
-  <% } %>
+  <% } %> <% } %>
 </aside>
