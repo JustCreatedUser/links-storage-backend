@@ -4,6 +4,16 @@ $GREY: #5e5e5e;
 @function setControllableSize($size, $var: var(--scale-08-below-650px)) {
   @return calc($size * $var);
 }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+input[type="checkbox"] {
+  display: none;
+}
 :root {
   --scale-08-below-650px: 1;
   --scale-03-below-650px: 1;
@@ -14,7 +24,32 @@ $GREY: #5e5e5e;
     --scale-03-below-650px: 0.3;
   }
 }
-
+#dark-theme:checked {
+  ~ aside label[for="dark-theme"],
+  ~ header label[for="dark-theme"] {
+    color: black;
+    background: white;
+    border-color: black;
+  }
+}
+body:has(#dark-theme:checked) {
+  background-color: #252525;
+}
+label[for="dark-theme"] {
+  font-size: 21px;
+  padding: 8px 8px;
+  background: black;
+  border-radius: 10px;
+  color: white;
+  border: 2px solid;
+  cursor: pointer;
+  border-color: white;
+  font-weight: bold;
+  transition: 500ms filter;
+  &:hover {
+    filter: invert(1);
+  }
+}
 *,
 *::before,
 *::after {
@@ -36,7 +71,7 @@ header {
   align-items: center;
   padding-block: setControllableSize(20px, var(--scale-03-below-650px));
   padding-left: setControllableSize(70px, var(--scale-03-below-650px));
-  padding-right: setControllableSize(70px, var(--scale-08-below-650px));
+  padding-right: setControllableSize(70px);
 }
 h1 {
   color: $GREY;

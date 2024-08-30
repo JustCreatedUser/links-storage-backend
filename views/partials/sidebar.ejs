@@ -11,7 +11,6 @@
   <label for="dark-theme">Change theme</label>
   <% if (locals.app) { %>
   <label id="addNewLinkButton" for="createLinkState"> Add new link </label>
-
   <fieldset>
     <legend>Group filter <button>+</button></legend>
     <label
@@ -25,7 +24,7 @@
     </label>
   </fieldset>
   <% if (locals.app === "local") { %>
-  <a href="/sign-in">Sign in</a>
+  <a href="/login">Login</a>
   <a href="/register">Register</a>
   <% } else if (locals.app === "synchronized"){ %>
   <a href="/users/<%= userId %>"><%= username %></a>

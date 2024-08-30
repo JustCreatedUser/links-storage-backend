@@ -1,5 +1,9 @@
 <link rel="stylesheet" type="text/css" href="/header.css" />
-<input type="checkbox" id="dark-theme" />
+<input
+  type="checkbox"
+  id="dark-theme"
+  onclick="localStorage.setItem('dark-theme', `${this.checked}`)"
+/>
 <script>
   document.getElementById("dark-theme").checked =
     JSON.parse(localStorage.getItem("dark-theme")) || false;
@@ -22,5 +26,17 @@
     </datalist>
   </nav>
 
+  <% } else { %>
+  <style>
+    header {
+      padding-right: calc(70px * var(--scale-03-below-650px));
+    }
+    @media (max-width: 650px) {
+      label[for="dark-theme"] {
+        font-size: 18px;
+      }
+    }
+  </style>
+  <label for="dark-theme">Change theme</label>
   <% } %>
 </header>

@@ -4,18 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-    <style>
-      input[type="checkbox"] {
-        display: none;
-      }
-    </style>
+    <link rel="stylesheet" href="/login.css" />
   </head>
   <body>
-    <%- include('./partials/header.ejs') %> <%-
-    include('./partials/sidebar.ejs') %>
+    <%- include('./partials/header.ejs') %>
     <main>
-      <h1>Sign in</h1>
-      <form action="/sign-in" method="POST">
+      <form action="/login" method="POST">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required />
         <label for="password">Password:</label>

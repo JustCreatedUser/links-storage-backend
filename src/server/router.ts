@@ -16,24 +16,22 @@ router
   .get("/", authMiddleware, (_, res) => {
     res.redirect("/main-app");
   })
-  .get("/sign-in", (req: any, res) => {
+  .get("/login", (req: any, res) => {
     if (req.userId) {
       res.redirect("/main-app");
     }
-    if (req.params.status == "again") {
-    }
-    res.render("sign-in", { headerTitle: "Sign in" });
+    res.render("login", { headerTitle: "Login" });
   })
   .get("/register", (req, res) => {
     const attempt: registerAttempt =
       (req.query as { attempt: "again" }).attempt || "normal";
-    res.render("register", { attempt });
+    res.render("register", { attempt, headerTitle: "Register" });
   })
   .get("/users/:user", goToAccountPage)
   .put("/users/:user", synchronizeDataWithAccount)
   .get("/local-app", renderLocalApp)
   .get("/main-app", authMiddleware, renderMainApp)
-  .post("/sign-in", signIn)
+  .post("/login", signIn)
   .post("/users", createUser)
   .delete("/users/:user", deleteUser)
   .get("/logout", logout);

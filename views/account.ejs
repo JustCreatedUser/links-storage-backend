@@ -20,14 +20,13 @@
     </style>
   </head>
   <body style="text-align: center">
-    <%- include('./partials/header.ejs') %> <%-
-    include('./partials/sidebar.ejs') %>
+    <%- include('./partials/header.ejs') %>
     <main>
       <p>
         Go to <a href="/main-app">MAIN</a> or to
         <a href="/local-app">local</a> app
       </p>
-      <a href="/sign-in">Change account - sign in</a
+      <a href="/login">Change account - Login</a
       ><a href="/register">Create new account - register</a>
       <a href="/logout">Logout</a>
       <form action="/users/<%= userId  %>?_method=DELETE" method="POST">

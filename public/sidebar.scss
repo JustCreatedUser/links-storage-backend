@@ -28,17 +28,12 @@ aside {
     margin-top: 10px;
   }
 }
-#dark-theme:checked {
-  ~ aside {
-    label[for="dark-theme"],
-    > a {
-      color: black;
-      background: white;
-      border-color: black;
-    }
-  }
+#dark-theme:checked ~ aside > a {
+  color: black;
+  background: white;
+  border-color: black;
 }
-label[for="dark-theme"],
+
 aside > a {
   font-size: 21px;
   margin-bottom: 30px;
@@ -95,6 +90,6 @@ aside > a {
 .group-aside-button:has(#toggle-group-aside:checked) + aside {
   translate: 0% 0;
 }
-body:has(#dark-theme:checked) {
-  background-color: #252525;
+label[for="dark-theme"] {
+  margin-bottom: 30px;
 }

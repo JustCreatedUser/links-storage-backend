@@ -1,5 +1,5 @@
 const main = document.querySelector("main") as HTMLElement,
-  DATASTORAGE: Storage = (() => {
+  DATA_STORAGE: Storage = (() => {
     if (main.dataset.display == "local") {
       return window.localStorage;
     } else {
@@ -8,10 +8,10 @@ const main = document.querySelector("main") as HTMLElement,
   })(),
   db: Database = (function () {
     try {
-      let neededDB = JSON.parse(DATASTORAGE.db);
+      let neededDB = JSON.parse(DATA_STORAGE.db);
       return neededDB;
     } catch {
-      if (!DATASTORAGE) {
+      if (!DATA_STORAGE) {
         alert(
           "The internet connection is worthless or your browser is too old. Update it or use a different one."
         );
@@ -22,7 +22,7 @@ const main = document.querySelector("main") as HTMLElement,
   allFilterGroups: string[] = (function () {
     try {
       let neededGroups: Array<string> = JSON.parse(
-        DATASTORAGE.getItem("allFilterGroups") as string
+        DATA_STORAGE.getItem("allFilterGroups") as string
       );
       if (neededGroups.length == 0) {
         throw new Error("groups are empty");
@@ -46,7 +46,7 @@ const main = document.querySelector("main") as HTMLElement,
         }
         return groups;
       })();
-      DATASTORAGE.setItem("allFilterGroups", JSON.stringify(groups));
+      DATA_STORAGE.setItem("allFilterGroups", JSON.stringify(groups));
       return groups;
     }
   })(),
@@ -178,7 +178,10 @@ function configureGroupNameInput(
           })()
         );
         allFilterGroups.push(groupInput.value);
-        DATASTORAGE.setItem("allFilterGroups", JSON.stringify(allFilterGroups));
+        DATA_STORAGE.setItem(
+          "allFilterGroups",
+          JSON.stringify(allFilterGroups)
+        );
         prepareLinkGroupSelect();
         groupInput.remove();
       });
@@ -206,8 +209,11 @@ function configureGroupNameInput(
             oldLink.group = groupInput.value;
           }
         );
-        DATASTORAGE.setItem("allFilterGroups", JSON.stringify(allFilterGroups));
-        DATASTORAGE.setItem("db", JSON.stringify(db));
+        DATA_STORAGE.setItem(
+          "allFilterGroups",
+          JSON.stringify(allFilterGroups)
+        );
+        DATA_STORAGE.setItem("db", JSON.stringify(db));
         main
           .querySelectorAll<HTMLAnchorElement>(
             `a[data-group="${span!.innerText}"]`
@@ -271,12 +277,12 @@ fieldset.addEventListener("click", function (event: any): any {
                 ),
                 1
               );
-              DATASTORAGE.setItem(
+              DATA_STORAGE.setItem(
                 "allFilterGroups",
                 JSON.stringify(allFilterGroups)
               );
               event.target.parentElement.remove();
-              DATASTORAGE.setItem("db", JSON.stringify(db));
+              DATA_STORAGE.setItem("db", JSON.stringify(db));
               prepareLinkGroupSelect();
             })()
           : "";
@@ -401,7 +407,7 @@ linkURL.addEventListener("blur", function () {
     return;
   }
   linkURL.value = linkURL.value.trim();
-  DATASTORAGE.setItem("db", JSON.stringify(db));
+  DATA_STORAGE.setItem("db", JSON.stringify(db));
 });
 linkName.addEventListener("blur", function () {
   if (!editableLinkInfo) return;
@@ -454,7 +460,7 @@ document
               "group"
             );
             prepareSearchInput();
-            DATASTORAGE.setItem("db", JSON.stringify(db));
+            DATA_STORAGE.setItem("db", JSON.stringify(db));
           })()
         : "";
     }
@@ -482,7 +488,7 @@ document.getElementById("edit-link-button")!.addEventListener("click", () => {
     resolve("");
   }).then(
     () => {
-      DATASTORAGE.setItem("db", JSON.stringify(db));
+      DATA_STORAGE.setItem("db", JSON.stringify(db));
       prepareSearchInput();
       checkedLinkRadio!.checked = false;
       checkedLinkRadio = null;
@@ -498,9 +504,6 @@ document.getElementById("edit-link-button")!.addEventListener("click", () => {
       alert("Invalid link name, URL or group");
     }
   );
-});
-document.getElementById("dark-theme")!.addEventListener("click", function () {
-  localStorage.setItem("dark-theme", `${(this as HTMLInputElement).checked}`);
 });
 document.querySelector("section")!.addEventListener("click", function (event) {
   if (this !== event.target) return;

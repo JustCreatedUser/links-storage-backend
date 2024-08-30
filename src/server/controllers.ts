@@ -5,14 +5,14 @@ type renderedApp = "local" | "synchronized";
 export function authMiddleware(req: any, res: any, next: any) {
   const token = req.cookies.token;
   if (!token) {
-    return res.status(401).redirect("/sign-in");
+    return res.status(401).redirect("/login");
   }
   try {
     const decoded = jsonwebtoken.verify(token, process.env.JWT_SECRET!);
     req.userId = (decoded as { userId: string }).userId;
     next();
   } catch (error: any) {
-    res.redirect("/sign-in");
+    res.redirect("/login");
   }
 }
 export async function createUser(req: any, res: any) {
@@ -69,7 +69,7 @@ export async function renderMainApp(req: any, res: any) {
       headerTitle: "Main app",
     });
   } catch (error: any) {
-    res.status(401).redirect("/sign-in");
+    res.status(401).redirect("/login");
   }
 }
 export async function synchronizeDataWithAccount(req: any, res: any) {
@@ -94,9 +94,9 @@ export async function signIn(req: any, res: any) {
   const { password, username } = req.body;
   try {
     const user = await USER_SCHEMA.findOne({ username: username });
-    if (!user) return res.status(401).redirect("/sign-in?status=again");
+    if (!user) return res.status(401).redirect("/login?status=again");
     const isValidPassword = bcrypt.compareSync(password, user.password);
-    if (!isValidPassword) return res.status(401).redirect("/sign-in");
+    if (!isValidPassword) return res.status(401).redirect("/login");
     const token = jsonwebtoken.sign(
       { userId: user._id },
       process.env.JWT_SECRET!
@@ -126,7 +126,7 @@ export async function deleteUser(req: any, res: any) {
   try {
     const userId = req.params.user;
     await USER_SCHEMA.findByIdAndDelete(userId);
-    res.status(200).redirect("/sign-in");
+    res.status(200).redirect("/login");
   } catch (error: any) {
     console.log(error.message);
   }
@@ -134,7 +134,7 @@ export async function deleteUser(req: any, res: any) {
 export function logout(_: any, res: any) {
   try {
     res.clearCookie("token");
-    res.redirect("/sign-in");
+    res.redirect("/login");
   } catch (error: any) {
     console.log(error.message);
   }

@@ -20,6 +20,10 @@ const UserSchema = new mongoose.Schema({
     default: () => Date.now(),
     immutable: true,
   },
+  updatedAt: {
+    type: Date,
+    default: () => Date.now(),
+  },
   allFilterGroups: {
     type: [String],
     default: [],
