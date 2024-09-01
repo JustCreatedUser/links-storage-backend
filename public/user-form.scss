@@ -1,0 +1,100 @@
+$my-width: 1080px;
+$GREY: #5e5e5e;
+$GREEN: #99cea5;
+input[type="checkbox"] {
+  display: none;
+}
+main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: white;
+  min-height: 60vh;
+  width: 70vw;
+}
+.OR {
+  font-weight: bold;
+  padding: 20px 30px;
+  display: flex;
+  flex-direction: column;
+}
+a {
+  color: $GREY;
+  margin-block: 20px;
+  font-size: 20px;
+}
+form {
+  color: $GREY;
+  align-self: center;
+  margin-bottom: 100px;
+  padding: clamp(20px, 10%, 50px) clamp(30px, 10%, 100px);
+  border-bottom: 2px solid;
+  border-bottom-color: $GREY;
+  display: flex;
+  flex-direction: column;
+}
+input {
+  padding: 5px 10px;
+  border-radius: 5px;
+  width: clamp(250px, 60vw, 600px);
+  height: 30px;
+  margin-bottom: 10px;
+}
+input::placeholder {
+  -webkit-text-fill-color: $GREY;
+}
+label {
+  font-size: 20px;
+  display: grid;
+  margin-bottom: 30px;
+}
+button {
+  background-color: $GREEN;
+  color: black;
+  font-weight: bold;
+  border-radius: 5px;
+  width: fit-content;
+  padding: 20px 30px;
+}
+body {
+  font-weight: bold;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+summary::marker {
+  content: "🛈 ";
+  font-weight: lighter;
+  color: black;
+  font-size: 20px;
+}
+summary {
+  cursor: pointer;
+  font-size: 17px;
+}
+p {
+  color: $GREY;
+}
+#dark-theme:checked ~ main {
+  form {
+    color: white;
+    border-bottom-color: $GREEN;
+  }
+  a {
+    color: white;
+  }
+  summary {
+    &::marker {
+      color: $GREEN;
+    }
+  }
+  p {
+    color: white;
+  }
+  input {
+    -webkit-text-fill-color: $GREEN;
+    caret-color: $GREEN;
+    box-shadow: 0 0 0 300px inset #000;
+    border: 2px solid $GREEN;
+  }
+}

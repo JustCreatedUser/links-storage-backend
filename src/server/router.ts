@@ -20,12 +20,16 @@ router
     if (req.userId) {
       res.redirect("/main-app");
     }
-    res.render("login", { headerTitle: "Login" });
+    res.render("user-form", { headerTitle: "Login", formLink: "/login" });
   })
   .get("/register", (req, res) => {
     const attempt: registerAttempt =
       (req.query as { attempt: "again" }).attempt || "normal";
-    res.render("register", { attempt, headerTitle: "Register" });
+    res.render("user-form", {
+      attempt,
+      headerTitle: "Register",
+      formLink: "/users",
+    });
   })
   .get("/users/:user", goToAccountPage)
   .put("/users/:user", synchronizeDataWithAccount)
