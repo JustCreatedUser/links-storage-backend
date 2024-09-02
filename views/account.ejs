@@ -1,37 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    <style>
-      input[type="checkbox"] {
-        display: none;
-      }
-      a {
-        color: green;
-      }
-      main {
-        width: 100vw;
-        display: flex;
-        gap: 50px;
-        justify-content: center;
-      }
-    </style>
-  </head>
-  <body style="text-align: center">
-    <%- include('./partials/header.ejs') %>
-    <main>
-      <p>
-        Go to <a href="/main-app">MAIN</a> or to
-        <a href="/local-app">local</a> app
-      </p>
-      <a href="/login">Change account - Login</a
-      ><a href="/register">Create new account - register</a>
-      <a href="/logout">Logout</a>
-      <form action="/users/<%= userId  %>?_method=DELETE" method="POST">
-        <input type="submit" value="Delete account" style="color: red" />
-      </form>
-    </main>
-  </body>
-</html>
+<style>
+  body {
+    text-align: center;
+  }
+  input[type="checkbox"] {
+    display: none;
+  }
+  a {
+    color: green;
+  }
+  main {
+    width: 100vw;
+    display: flex;
+    gap: 50px;
+    justify-content: center;
+  }
+</style>
+<main>
+  <p>
+    Go to <a href="/main-app">MAIN</a> or to <a href="/local-app">local</a> app
+  </p>
+  <a href="/login">Change account - Login</a
+  ><a href="/register">Create new account - register</a>
+  <a href="/logout">Logout</a>
+  <form action="/users/<%= userId  %>?_method=DELETE" method="POST">
+    <input type="submit" value="Delete account" style="color: red" />
+  </form>
+</main>

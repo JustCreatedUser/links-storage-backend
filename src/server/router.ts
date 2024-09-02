@@ -20,7 +20,12 @@ router
     if (req.userId) {
       res.redirect("/main-app");
     }
-    res.render("user-form", { headerTitle: "Login", formLink: "/login" });
+    res.render("user-form", {
+      headerTitle: "Login",
+      formLink: "/login",
+      metaPageDescription:
+        "On this page you can login to your account and easily access your saved data",
+    });
   })
   .get("/register", (req, res) => {
     const attempt: registerAttempt =
@@ -29,6 +34,8 @@ router
       attempt,
       headerTitle: "Register",
       formLink: "/users",
+      metaPageDescription:
+        "On this page you can register a new account and use it wherever you want",
     });
   })
   .get("/users/:user", goToAccountPage)

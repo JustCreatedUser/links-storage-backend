@@ -45,6 +45,8 @@ export function renderLocalApp(_: any, res: any) {
   res.render("main-app", {
     app,
     headerTitle: "Local app",
+    metaPageDescription:
+      "This is the local version of this app. It gives you same opportunities as the main one, however you can't access your data on other device",
   });
 }
 export async function renderMainApp(req: any, res: any) {
@@ -67,6 +69,8 @@ export async function renderMainApp(req: any, res: any) {
       allFilterGroups,
       userId,
       headerTitle: "Main app",
+      metaPageDescription:
+        "This is the main version of this app. Everything here is available: your links are stored properly and securely, you can access the data with account synchronization and it's just a better choice!",
     });
   } catch (error: any) {
     res.status(401).redirect("/login");
@@ -117,7 +121,12 @@ export async function goToAccountPage(req: any, res: any) {
           throw new Error("NO USER");
         }
       })();
-    res.render("account", { userId, headerTitle: "Account - " + username });
+    res.render("account", {
+      userId,
+      headerTitle: "Account - " + username,
+      metaPageDescription:
+        "This is your account's page. Here you can configure your user's params",
+    });
   } catch (error: any) {
     console.log(error.message);
   }

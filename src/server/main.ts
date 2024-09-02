@@ -4,9 +4,11 @@ import router from "./router";
 import connectDB from "./connect-database";
 import cookieParser from "cookie-parser";
 import methodOverride from "method-override";
+import expressEjsLayouts from "express-ejs-layouts";
 const app = express();
 app
   .set("view engine", "ejs")
+  .use(expressEjsLayouts)
   .use(express.urlencoded({ extended: true }))
   .use(express.json())
   .use(cookieParser())

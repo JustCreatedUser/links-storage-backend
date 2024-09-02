@@ -463,6 +463,36 @@ document
             DATA_STORAGE.setItem("db", JSON.stringify(db));
           })()
         : "";
+    } else {
+      try {
+        confirm("Are you sure about deleting this link?")
+          ? (() => {
+              db.splice(
+                db.findIndex(
+                  (link) =>
+                    link.name === linkName.value &&
+                    link.url === linkURL.value &&
+                    link.group === linkGroupInput.value
+                ),
+                1
+              );
+              checkedLinkRadio!.checked = false;
+              checkedLinkRadio = null;
+              editableLinkInfo = null;
+              showLinksToUser(
+                (
+                  fieldset.querySelector<HTMLInputElement>("input:checked")!
+                    .nextElementSibling as HTMLSpanElement
+                ).innerText,
+                "group"
+              );
+              prepareSearchInput();
+              DATA_STORAGE.setItem("db", JSON.stringify(db));
+            })()
+          : "";
+      } catch {
+        alert("ERROR");
+      }
     }
   });
 document.getElementById("edit-link-button")!.addEventListener("click", () => {

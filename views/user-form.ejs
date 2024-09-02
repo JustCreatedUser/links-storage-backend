@@ -1,56 +1,45 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Links-storage - <%= headerTitle %></title>
-    <link rel="stylesheet" href="/user-form.css" />
-  </head>
-  <body>
-    <%- include('./partials/header.ejs') %>
-    <main>
-      <form action="<%= formLink  %>" method="POST">
-        <label>
-          <% if (headerTitle=="Register") { %> <% if (attempt == "again") { %>
-          Create ANOTHER username <% } else {%> Create a username <% } %> <% }
-          else {%> Username: <% } %>
-          <input
-            placeholder="username"
-            type="text"
-            autocomplete="name"
-            required
-            name="username"
-            minlength="2"
-        /></label>
-        <label>
-          <% if (headerTitle=="Register") { %> Create password: <% } else { %>
-          Password: <% } %>
-          <input
-            placeholder="password"
-            type="password"
-            autocomplete="off"
-            required
-            minlength="4"
-            name="password"
-          />
-        </label>
-        <button type="submit">Submit</button>
-      </form>
-      <div class="OR">
-        <% if (headerTitle=="Register") { %>
-        <a href="/login">Already have an account? Login!</a>
-        <% } else {%>
-        <a href="/register">Don't have an account? Register!</a>
-        <% } %>
-        <details>
-          <summary><a href="/local-app">Skip connecting account</a></summary>
-          <p style="overflow-wrap: break-word">
-            It means that you will only be able to store data on this particular
-            device and not on user. In this case you can't access the
-            information on other devices.
-          </p>
-        </details>
-      </div>
-    </main>
-  </body>
-</html>
+<link rel="stylesheet" href="/user-form.css" />
+<main>
+  <form action="<%= formLink  %>" method="POST">
+    <label>
+      <% if (headerTitle=="Register") { %> <% if (attempt == "again") { %>
+      Create ANOTHER username <% } else {%> Create a username <% } %> <% } else
+      {%> Username: <% } %>
+      <input
+        placeholder="username"
+        type="text"
+        autocomplete="name"
+        required
+        name="username"
+        minlength="2"
+    /></label>
+    <label>
+      <% if (headerTitle=="Register") { %> Create password: <% } else { %>
+      Password: <% } %>
+      <input
+        placeholder="password"
+        type="password"
+        autocomplete="off"
+        required
+        minlength="4"
+        name="password"
+      />
+    </label>
+    <button type="submit">Submit</button>
+  </form>
+  <div class="OR">
+    <% if (headerTitle=="Register") { %>
+    <a href="/login">Already have an account? Login!</a>
+    <% } else {%>
+    <a href="/register">Don't have an account? Register!</a>
+    <% } %>
+    <details>
+      <summary><a href="/local-app">Skip connecting account</a></summary>
+      <p style="overflow-wrap: break-word">
+        It means that you will only be able to store data on this particular
+        device and not on user. In this case you can't access the information on
+        other devices.
+      </p>
+    </details>
+  </div>
+</main>
