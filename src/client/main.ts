@@ -1,3 +1,5 @@
+import { getAccountDb } from "./connect-db";
+
 const main = document.querySelector("main") as HTMLElement,
   DATA_STORAGE: Storage = (() => {
     if (main.dataset.display == "local") {
@@ -424,16 +426,6 @@ linkName.addEventListener("blur", function () {
     return;
   }
 });
-
-document
-  .getElementById("synchronize-data-button")
-  ?.addEventListener("click", function () {
-    const dataForm = this.previousElementSibling as HTMLFormElement;
-    dataForm.querySelector("textarea")!.value = JSON.stringify(db);
-    dataForm.querySelector("input")!.value = JSON.stringify(allFilterGroups);
-    dataForm.submit();
-  });
-
 document
   .getElementById("delete-link-button")!
   .addEventListener("click", function () {
@@ -535,6 +527,9 @@ document.getElementById("edit-link-button")!.addEventListener("click", () => {
     }
   );
 });
+document.getElementById("getUSER")!.onclick = function () {
+  getAccountDb();
+};
 document.querySelector("section")!.addEventListener("click", function (event) {
   if (this !== event.target) return;
   if (editableLinkInfo) {

@@ -11,6 +11,7 @@ import {
   goToAccountPage,
   deleteUser,
   logout,
+  getAccountDb,
 } from "./controllers";
 router
   .get("/", authMiddleware, (_, res) => {
@@ -39,9 +40,10 @@ router
     });
   })
   .get("/users/:user", goToAccountPage)
-  .put("/users/:user", synchronizeDataWithAccount)
+  .put("/users/:user/db", synchronizeDataWithAccount)
   .get("/local-app", renderLocalApp)
   .get("/main-app", authMiddleware, renderMainApp)
+  .get("/users/:user/db", getAccountDb)
   .post("/login", signIn)
   .post("/users", createUser)
   .delete("/users/:user", deleteUser)

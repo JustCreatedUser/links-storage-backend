@@ -89,9 +89,10 @@ export async function synchronizeDataWithAccount(req: any, res: any) {
     userInDb.linksStorage = linksStorage;
     userInDb.allFilterGroups = allFilterGroups;
     await userInDb.save();
-    res.status(200).redirect("/main-app");
+    res.status(200);
   } catch (error: any) {
     console.log(error.message);
+    res.status(400);
   }
 }
 export async function signIn(req: any, res: any) {
@@ -144,6 +145,18 @@ export function logout(_: any, res: any) {
   try {
     res.clearCookie("token");
     res.redirect("/login");
+  } catch (error: any) {
+    console.log(error.message);
+  }
+}
+export async function getAccountDb(req: any, res: any) {
+  try {
+    const userId = req.params.user as string;
+    const userInDB = await USER_SCHEMA.findById(userId);
+    if (!userInDB) {
+      throw new Error("NO USER");
+    }
+    res.status(200).json(userInDB);
   } catch (error: any) {
     console.log(error.message);
   }

@@ -23,15 +23,10 @@
       >
     </label>
   </fieldset>
-  <% if (locals.app === "local") { %>
   <a href="/login">Login</a>
   <a href="/register">Register</a>
-  <% } else if (locals.app === "synchronized"){ %>
+  <% if (locals.app === "synchronized"){ %>
   <a href="/users/<%= userId %>"><%= username %></a>
-  <form action="/users/<%= userId %>?_method=PUT" method="POST">
-    <textarea name="linksStorage" id="linksStorage"></textarea>
-    <input type="text" name="allFilterGroups" id="allFilterGroups" />
-  </form>
-  <button id="synchronize-data-button">Synchronize data with account</button>
+  <button id="getUSER">getUSER</button>
   <% } %> <% } %>
 </aside>
