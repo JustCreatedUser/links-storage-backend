@@ -7,11 +7,11 @@ import {
   renderLocalApp,
   renderMainApp,
   signIn,
-  synchronizeDataWithAccount,
   goToAccountPage,
   deleteUser,
   logout,
   getAccountDb,
+  updateAccountDb,
 } from "./controllers";
 router
   .get("/", authMiddleware, (_, res) => {
@@ -40,7 +40,7 @@ router
     });
   })
   .get("/users/:user", goToAccountPage)
-  .put("/users/:user/db", synchronizeDataWithAccount)
+  .put("/users/:user/db", updateAccountDb)
   .get("/local-app", renderLocalApp)
   .get("/main-app", authMiddleware, renderMainApp)
   .get("/users/:user/db", getAccountDb)

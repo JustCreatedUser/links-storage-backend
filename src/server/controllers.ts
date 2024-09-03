@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import USER_SCHEMA, { LINK_STORAGE } from "./User-model";
+import USER_SCHEMA from "./User-model";
 import jsonwebtoken from "jsonwebtoken";
 type renderedApp = "local" | "synchronized";
 export function authMiddleware(req: any, res: any, next: any) {
@@ -76,25 +76,6 @@ export async function renderMainApp(req: any, res: any) {
     res.status(401).redirect("/login");
   }
 }
-export async function synchronizeDataWithAccount(req: any, res: any) {
-  try {
-    const linksStorage = JSON.parse(req.body.linksStorage) as LINK_STORAGE,
-      allFilterGroups = JSON.parse(req.body.allFilterGroups) as string[],
-      token = req.cookies.token as string,
-      decodedToken = jsonwebtoken.verify(token, process.env.JWT_SECRET!),
-      userInDb = await USER_SCHEMA.findById(
-        (decodedToken as { userId: string }).userId
-      );
-    if (!userInDb) throw new Error("NO USER");
-    userInDb.linksStorage = linksStorage;
-    userInDb.allFilterGroups = allFilterGroups;
-    await userInDb.save();
-    res.status(200);
-  } catch (error: any) {
-    console.log(error.message);
-    res.status(400);
-  }
-}
 export async function signIn(req: any, res: any) {
   const { password, username } = req.body;
   try {
@@ -151,12 +132,52 @@ export function logout(_: any, res: any) {
 }
 export async function getAccountDb(req: any, res: any) {
   try {
+    const decoded = jsonwebtoken.verify(
+      req.cookies.token,
+      process.env.JWT_SECRET!
+    );
+    if (!decoded || (decoded as any).userId !== req.params.user) {
+      throw new Error("Account not verified USER");
+    }
+    console.log((decoded as any).userId, req.params.user);
+
     const userId = req.params.user as string;
     const userInDB = await USER_SCHEMA.findById(userId);
     if (!userInDB) {
       throw new Error("NO USER");
     }
-    res.status(200).json(userInDB);
+    res.status(200).json({
+      linksStorage: userInDB.linksStorage,
+      allFilterGroups: userInDB.allFilterGroups,
+    });
+  } catch (error: any) {
+    console.log(error.message);
+  }
+}
+export async function updateAccountDb(req: any, res: any) {
+  try {
+    const decoded = jsonwebtoken.verify(
+      req.cookies.token,
+      process.env.JWT_SECRET!
+    );
+    if (!decoded || (decoded as any).userId !== req.params.user) {
+      res.status(400).send("unreliable USER");
+      return;
+    }
+    const userId = req.params.user as string;
+    const userInDB = await USER_SCHEMA.findById(userId);
+    if (!userInDB) {
+      res.status(400).send("No user in db");
+      return;
+    }
+    const sentData = req.body;
+    if (sentData.db) userInDB.linksStorage = sentData.db;
+
+    if (sentData.allFilterGroups)
+      userInDB.allFilterGroups = sentData.allFilterGroups;
+
+    await userInDB.save();
+    res.status(200).send("saved");
   } catch (error: any) {
     console.log(error.message);
   }

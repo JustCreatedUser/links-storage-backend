@@ -1,10 +1,5 @@
 import mongoose from "mongoose";
-interface LINK {
-  description: string;
-  url: string;
-  group: string;
-}
-export type LINK_STORAGE = LINK[];
+import { LINK_STORAGE, Link } from "../client/main";
 const UserSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -42,7 +37,7 @@ const UserSchema = new mongoose.Schema({
     type: Array,
     default: [],
     validate: {
-      validator: function (storage: Array<LINK>) {
+      validator: function (storage: Array<Link>) {
         const uniqueLinksNames = new Set(
           storage.reduce((previous, current) => {
             previous.push(current.description);

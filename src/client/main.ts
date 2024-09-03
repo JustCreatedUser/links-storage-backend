@@ -1,4 +1,4 @@
-import { getAccountDb } from "./connect-db";
+import { accountDbRequest } from "./connect-db";
 
 const main = document.querySelector("main") as HTMLElement,
   DATA_STORAGE: Storage = (() => {
@@ -8,7 +8,7 @@ const main = document.querySelector("main") as HTMLElement,
       return window.sessionStorage;
     }
   })(),
-  db: Database = (function () {
+  db: LINK_STORAGE = (function () {
     try {
       let neededDB = JSON.parse(DATA_STORAGE.db);
       return neededDB;
@@ -64,12 +64,12 @@ const main = document.querySelector("main") as HTMLElement,
   linkName = document.getElementById("linkName") as HTMLInputElement;
 var editableLinkInfo: Link | null = null,
   checkedLinkRadio: HTMLInputElement | null = null;
-interface Link {
-  name: string;
+export interface Link {
+  description: string;
   url: string;
   group: string;
 }
-type Database = Array<Link>;
+export type LINK_STORAGE = Array<Link>;
 
 function prepareSearchInput() {
   const datalist = document.getElementById(
@@ -79,7 +79,7 @@ function prepareSearchInput() {
   datalist.append(
     ...db.reduce((allLinks: Array<HTMLOptionElement>, link) => {
       const option = document.createElement("option");
-      option.value = link.name;
+      option.value = link.description;
       allLinks.push(option);
       return allLinks;
     }, [])
@@ -121,7 +121,7 @@ function prepareLinkGroupSelect() {
   );
 }
 
-function showLinksToUser(group: string, elementToShow: "group" | Database) {
+function showLinksToUser(group: string, elementToShow: "group" | LINK_STORAGE) {
   //! показує відфільтровані за групою АБО фільтром результати в html
   editableLinkInfo = null;
   var filteredArray =
@@ -129,7 +129,7 @@ function showLinksToUser(group: string, elementToShow: "group" | Database) {
   main.innerHTML = filteredArray.reduce(function (): string {
     return (
       arguments[0] +
-      /*html*/ `<div><input id="radio${arguments[2]}" type="radio" name="link-settings"><a data-group="${arguments[1].group}" target="_blank" href="${arguments[1].url}">${arguments[1].name}</a><label for="radio${arguments[2]}">⋮</label></div>`
+      /*html*/ `<div><input id="radio${arguments[2]}" type="radio" name="link-settings"><a data-group="${arguments[1].group}" target="_blank" href="${arguments[1].url}">${arguments[1].description}</a><label for="radio${arguments[2]}">⋮</label></div>`
     );
   }, "");
 }
@@ -138,7 +138,7 @@ function getFilteredResults(group: string) {
   //! відфільтровує результати за групою
   return db.filter((item) => {
     return group === "All" ? true : item.group === group;
-  }) as Database;
+  }) as LINK_STORAGE;
 }
 
 function configureGroupNameInput(
@@ -239,9 +239,9 @@ function areLinkFieldsNotValid() {
   const isLinkNameNotValid =
       !linkName.value ||
       ((editableLinkInfo
-        ? !(linkName.value === editableLinkInfo!.name)
+        ? !(linkName.value === editableLinkInfo!.description)
         : true) &&
-        db.some((link) => link.name === linkName.value)),
+        db.some((link) => link.description === linkName.value)),
     isLinkURLNotValid = !linkURL.value || !/https?:\/\//g.test(linkURL.value),
     isLinkGroupNotValid =
       !linkGroupInput.value ||
@@ -347,7 +347,7 @@ searchButton.addEventListener("click", function () {
   }
   const searchedLink = db.find(
     (link) =>
-      link.name ===
+      link.description ===
       (document.querySelector('input[type="search"]') as HTMLInputElement).value
   );
   if (searchedLink) {
@@ -355,7 +355,7 @@ searchButton.addEventListener("click", function () {
     showLinksToUser(
       (fieldset.querySelector("input:checked") as HTMLInputElement).dataset
         .group as string,
-      [searchedLink] as Database
+      [searchedLink] as LINK_STORAGE
     );
   } else {
     alert("There is no link you tried to find");
@@ -367,7 +367,7 @@ main.addEventListener("click", function (event) {
   editableLinkInfo = {
     ...db.find(
       (link) =>
-        link.name ===
+        link.description ===
         (
           (event.target as HTMLInputElement)
             .nextElementSibling as HTMLAnchorElement
@@ -377,7 +377,8 @@ main.addEventListener("click", function (event) {
   const configuration = document.querySelector(
     ".configure-link"
   ) as HTMLDivElement;
-  (configuration.children[0] as HTMLInputElement).value = editableLinkInfo.name;
+  (configuration.children[0] as HTMLInputElement).value =
+    editableLinkInfo.description;
   (configuration.children[1] as HTMLInputElement).value = editableLinkInfo.url;
   linkGroupInput.value = editableLinkInfo.group;
 });
@@ -415,77 +416,48 @@ linkName.addEventListener("blur", function () {
   if (!editableLinkInfo) return;
   if (!linkName.value) {
     alert("Name should contain at least 1 character");
-    linkName.value = editableLinkInfo.name;
+    linkName.value = editableLinkInfo.description;
     return;
   } else if (
-    !(editableLinkInfo.name === linkName.value) &&
-    db.some((link) => link.name === linkName.value)
+    !(editableLinkInfo.description === linkName.value) &&
+    db.some((link) => link.description === linkName.value)
   ) {
     alert("Link name already exists");
-    linkName.value = editableLinkInfo.name;
+    linkName.value = editableLinkInfo.description;
     return;
   }
 });
 document
   .getElementById("delete-link-button")!
   .addEventListener("click", function () {
-    if (!areLinkFieldsNotValid()) {
-      confirm("Are you sure about deleting this link?")
-        ? (() => {
-            db.splice(
-              db.findIndex(
-                (link) =>
-                  link.name === linkName.value &&
-                  link.url === linkURL.value &&
-                  link.group === linkGroupInput.value
-              ),
-              1
-            );
-            checkedLinkRadio!.checked = false;
-            checkedLinkRadio = null;
-            editableLinkInfo = null;
-            showLinksToUser(
-              (
-                fieldset.querySelector<HTMLInputElement>("input:checked")!
-                  .nextElementSibling as HTMLSpanElement
-              ).innerText,
-              "group"
-            );
-            prepareSearchInput();
-            DATA_STORAGE.setItem("db", JSON.stringify(db));
-          })()
-        : "";
-    } else {
-      try {
-        confirm("Are you sure about deleting this link?")
-          ? (() => {
-              db.splice(
-                db.findIndex(
-                  (link) =>
-                    link.name === linkName.value &&
-                    link.url === linkURL.value &&
-                    link.group === linkGroupInput.value
-                ),
-                1
-              );
-              checkedLinkRadio!.checked = false;
-              checkedLinkRadio = null;
-              editableLinkInfo = null;
-              showLinksToUser(
-                (
-                  fieldset.querySelector<HTMLInputElement>("input:checked")!
-                    .nextElementSibling as HTMLSpanElement
-                ).innerText,
-                "group"
-              );
-              prepareSearchInput();
-              DATA_STORAGE.setItem("db", JSON.stringify(db));
-            })()
-          : "";
-      } catch {
-        alert("ERROR");
-      }
-    }
+    confirm("Are you sure about deleting this link?")
+      ? (() => {
+          db.splice(
+            db.findIndex(
+              (link) =>
+                link.description === linkName.value &&
+                link.url === linkURL.value &&
+                link.group === linkGroupInput.value
+            ),
+            1
+          );
+          checkedLinkRadio!.checked = false;
+          checkedLinkRadio = null;
+          editableLinkInfo = null;
+          showLinksToUser(
+            (
+              fieldset.querySelector<HTMLInputElement>("input:checked")!
+                .nextElementSibling as HTMLSpanElement
+            ).innerText,
+            "group"
+          );
+          prepareSearchInput();
+          DATA_STORAGE.setItem("db", JSON.stringify(db));
+          accountDbRequest("PUT", {
+            db,
+          });
+        })()
+      : "";
   });
 document.getElementById("edit-link-button")!.addEventListener("click", () => {
   new Promise((resolve, reject) => {
@@ -494,15 +466,15 @@ document.getElementById("edit-link-button")!.addEventListener("click", () => {
     }
     if (editableLinkInfo) {
       const thisLinkInDb = db.find(
-        (link) => link.name === editableLinkInfo!.name
+        (link) => link.description === editableLinkInfo!.description
       ) as Link;
-      thisLinkInDb.name = linkName.value;
+      thisLinkInDb.description = linkName.value;
       thisLinkInDb.url = linkURL.value;
       thisLinkInDb.group = linkGroupInput.value;
       editableLinkInfo = null;
     } else
       db.push({
-        name: linkName.value,
+        description: linkName.value,
         url: linkURL.value,
         group: linkGroupInput.value,
       });
@@ -512,6 +484,9 @@ document.getElementById("edit-link-button")!.addEventListener("click", () => {
     () => {
       DATA_STORAGE.setItem("db", JSON.stringify(db));
       prepareSearchInput();
+      accountDbRequest("PUT", {
+        db,
+      });
       checkedLinkRadio!.checked = false;
       checkedLinkRadio = null;
       showLinksToUser(
@@ -527,13 +502,10 @@ document.getElementById("edit-link-button")!.addEventListener("click", () => {
     }
   );
 });
-document.getElementById("getUSER")!.onclick = function () {
-  getAccountDb();
-};
 document.querySelector("section")!.addEventListener("click", function (event) {
   if (this !== event.target) return;
   if (editableLinkInfo) {
-    linkName.value = editableLinkInfo.name;
+    linkName.value = editableLinkInfo.description;
     linkURL.value = editableLinkInfo.url;
     linkGroupInput.value = editableLinkInfo.group;
     editableLinkInfo = null;
@@ -545,3 +517,5 @@ prepareLinkGroupSelect();
 showAllGroupsInSidebar();
 prepareSearchInput();
 showLinksToUser("All", "group");
+
+export { DATA_STORAGE };
