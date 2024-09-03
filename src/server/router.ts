@@ -15,11 +15,11 @@ import {
 } from "./controllers";
 router
   .get("/", authMiddleware, (_, res) => {
-    res.redirect("/main-app");
+    res.redirect("/app");
   })
   .get("/login", (req: any, res) => {
     if (req.userId) {
-      res.redirect("/main-app");
+      res.redirect("/app");
     }
     res.render("user-form", {
       headerTitle: "Login",

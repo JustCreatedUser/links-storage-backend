@@ -35,14 +35,14 @@ export async function createUser(req: any, res: any) {
     );
     res.cookie("token", token, { httpOnly: true });
     await newUser.save();
-    res.status(200).redirect(`/main-app`);
+    res.status(200).redirect(`/app`);
   } catch (error: any) {
     console.log(error.message);
   }
 }
 export function renderLocalApp(_: any, res: any) {
   const app: renderedApp = "local";
-  res.render("main-app", {
+  res.render("app", {
     app,
     headerTitle: "Local app",
     metaPageDescription:
@@ -62,7 +62,7 @@ export async function renderMainApp(req: any, res: any) {
       })(),
       linksStorage = JSON.stringify(user.linksStorage),
       allFilterGroups = JSON.stringify(user.allFilterGroups);
-    res.render("main-app", {
+    res.render("app", {
       app,
       username,
       linksStorage,
@@ -88,7 +88,7 @@ export async function signIn(req: any, res: any) {
       process.env.JWT_SECRET!
     );
     res.cookie("token", token, { httpOnly: true });
-    res.redirect("/main-app");
+    res.redirect("/app");
   } catch {
     console.log("error");
   }
