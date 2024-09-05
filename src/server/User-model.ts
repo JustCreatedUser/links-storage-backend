@@ -1,10 +1,17 @@
 import mongoose from "mongoose";
-import { LINK_STORAGE, Link } from "../client/main";
+import { Link } from "../client/main";
 const UserSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true,
     unique: true,
+    validate: {
+      validator: (username: string) => {
+        // Add validation for username format and length
+        return /^[a-zA-Z0-9]+$/.test(username) && username.length >= 3;
+      },
+      message: () => "Invalid username format or length",
+    },
   },
   password: {
     type: String,
@@ -23,12 +30,13 @@ const UserSchema = new mongoose.Schema({
     type: [String],
     default: [],
     validate: {
-      validator: function (THIS: Array<string>) {
+      validator: function (groups: Array<string>) {
+        if (!groups) return false;
         const specialGroup = "Ungrouped";
-        if (THIS.includes(specialGroup)) return false;
+        if (groups.includes(specialGroup)) return false;
 
-        const uniqueGroups = new Set(THIS);
-        return uniqueGroups.size === THIS.length;
+        const uniqueGroups = new Set(groups);
+        return uniqueGroups.size === groups.length;
       },
       message: () => `Some group names repeat!`,
     },
@@ -38,12 +46,13 @@ const UserSchema = new mongoose.Schema({
     default: [],
     validate: {
       validator: function (storage: Array<Link>) {
-        const uniqueLinksNames = new Set(
-          storage.reduce((previous, current) => {
-            previous.push(current.description);
-            return previous;
-          }, [] as Array<string>)
-        );
+        if (!storage) return false;
+        const uniqueLinksNames = new Set();
+        const uniqueLinks = new Set();
+        for (const link of storage) {
+          if (!link || !link.description) return false;
+          uniqueLinks.add(link.description);
+        }
         return uniqueLinksNames.size === storage.length;
       },
       message: () => `Some link descriptions repeat!`,
