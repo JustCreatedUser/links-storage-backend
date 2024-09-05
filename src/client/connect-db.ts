@@ -15,7 +15,40 @@ type syncLocalData = {
   linksStorage: LINK_STORAGE;
   allFilterGroups: string[];
 };
-
+/**
+ * Makes a request to the account database.
+ *
+ * @param {requestMethod} method - The request method, either "GET" or "PUT".
+ * @param {putData} [data] - The data to send with the request, only required for "PUT" requests.
+ * @returns {Promise<"ok" | user>} - A promise that resolves to either "ok" for successful "PUT" requests or a user object for successful "GET" requests.
+ *
+ * @example
+ * // GET request
+ * accountDbRequest("GET").then((user) => {
+ *   console.log(user); // { linksStorage: LINK_STORAGE, allFilterGroups: string[] }
+ * });
+ *
+ * @example
+ * // PUT request with data1
+ * const data: data1 = { linksStorage: LINK_STORAGE };
+ * accountDbRequest("PUT", data).then((response) => {
+ *   console.log(response); // "ok"
+ * });
+ *
+ * @example
+ * // PUT request with data2
+ * const data: data2 = { allFilterGroups: ["filter1", "filter2"] };
+ * accountDbRequest("PUT", data).then((response) => {
+ *   console.log(response); // "ok"
+ * });
+ *
+ * @example
+ * // PUT request with syncLocalData
+ * const data: syncLocalData = { linksStorage: LINK_STORAGE, allFilterGroups: ["filter1", "filter2"] };
+ * accountDbRequest("PUT", data).then((response) => {
+ *   console.log(response); // "ok"
+ * });
+ */
 export function accountDbRequest(method: "GET"): Promise<user>;
 
 export function accountDbRequest(method: "PUT", data: putData): Promise<"ok">;
