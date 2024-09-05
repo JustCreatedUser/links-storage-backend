@@ -1,21 +1,6 @@
 <link rel="stylesheet" href="/app.css" />
 <script defer type="module" src="/src/client/main.ts"></script>
-<% if (app === "synchronized") { %>
-<p style="display: none"><%= linksStorage %></p>
-<p style="display: none"><%= allFilterGroups %></p>
-<script>
-  sessionStorage.setItem(
-    "db",
-    document.querySelector("p:nth-of-type(1)").innerHTML
-  );
-  sessionStorage.setItem(
-    "allFilterGroups",
-    document.querySelector("p:nth-of-type(2)").innerHTML
-  );
-  document.querySelector("p:nth-of-type(1)").remove();
-  document.querySelector("p:nth-of-type(1)").remove();
-</script>
-<% } %><%- include('./partials/sidebar.ejs') %>
+<%- include('./partials/sidebar.ejs') %>
 <main data-display="<%= app %>"></main>
 <input type="radio" name="link-settings" id="createLinkState" />
 <section>

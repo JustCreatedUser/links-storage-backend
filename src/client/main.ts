@@ -1,16 +1,28 @@
 import { accountDbRequest } from "./connect-db";
-
-const main = document.querySelector("main") as HTMLElement,
-  DATA_STORAGE: Storage = (() => {
-    if (main.dataset.display == "local") {
-      return window.localStorage;
-    } else {
-      return window.sessionStorage;
+export const main = document.querySelector("main") as HTMLElement;
+export const DATA_STORAGE: Storage = (() => {
+  if (main.dataset.display == "local") {
+    return window.localStorage;
+  } else {
+    return window.sessionStorage;
+  }
+})();
+accountDbRequest("GET")
+  .then(
+    (response) => {
+      console.log(response, typeof response);
+    },
+    (rejection) => {
+      console.log(rejection);
     }
-  })(),
-  db: LINK_STORAGE = (function () {
+  )
+  .catch((error) => {
+    console.log(error);
+  });
+
+const linksStorage: LINK_STORAGE = (function () {
     try {
-      let neededDB = JSON.parse(DATA_STORAGE.db);
+      let neededDB = JSON.parse(DATA_STORAGE.linksStorage);
       return neededDB;
     } catch {
       if (!DATA_STORAGE) {
@@ -34,7 +46,7 @@ const main = document.querySelector("main") as HTMLElement,
       const groups = (() => {
         const groups = Array.from(
           new Set(
-            db.reduce((allGroups: string[], link) => {
+            linksStorage.reduce((allGroups: string[], link) => {
               allGroups.push(link.group);
               return allGroups;
             }, [])
@@ -64,6 +76,7 @@ const main = document.querySelector("main") as HTMLElement,
   linkName = document.getElementById("linkName") as HTMLInputElement;
 var editableLinkInfo: Link | null = null,
   checkedLinkRadio: HTMLInputElement | null = null;
+
 export interface Link {
   description: string;
   url: string;
@@ -77,7 +90,7 @@ function prepareSearchInput() {
   ) as HTMLDataListElement;
   datalist.innerHTML = "";
   datalist.append(
-    ...db.reduce((allLinks: Array<HTMLOptionElement>, link) => {
+    ...linksStorage.reduce((allLinks: Array<HTMLOptionElement>, link) => {
       const option = document.createElement("option");
       option.value = link.description;
       allLinks.push(option);
@@ -136,7 +149,7 @@ function showLinksToUser(group: string, elementToShow: "group" | LINK_STORAGE) {
 
 function getFilteredResults(group: string) {
   //! відфільтровує результати за групою
-  return db.filter((item) => {
+  return linksStorage.filter((item) => {
     return group === "All" ? true : item.group === group;
   }) as LINK_STORAGE;
 }
@@ -206,16 +219,16 @@ function configureGroupNameInput(
         allFilterGroups[
           allFilterGroups.findIndex((group) => group === span!.innerText)
         ] = groupInput.value;
-        db.filter((link) => link.group === span!.innerText).forEach(
-          (oldLink) => {
+        linksStorage
+          .filter((link) => link.group === span!.innerText)
+          .forEach((oldLink) => {
             oldLink.group = groupInput.value;
-          }
-        );
+          });
         DATA_STORAGE.setItem(
           "allFilterGroups",
           JSON.stringify(allFilterGroups)
         );
-        DATA_STORAGE.setItem("db", JSON.stringify(db));
+        DATA_STORAGE.setItem("linksStorage", JSON.stringify(linksStorage));
         main
           .querySelectorAll<HTMLAnchorElement>(
             `a[data-group="${span!.innerText}"]`
@@ -241,7 +254,7 @@ function areLinkFieldsNotValid() {
       ((editableLinkInfo
         ? !(linkName.value === editableLinkInfo!.description)
         : true) &&
-        db.some((link) => link.description === linkName.value)),
+        linksStorage.some((link) => link.description === linkName.value)),
     isLinkURLNotValid = !linkURL.value || !/https?:\/\//g.test(linkURL.value),
     isLinkGroupNotValid =
       !linkGroupInput.value ||
@@ -266,12 +279,14 @@ fieldset.addEventListener("click", function (event: any): any {
                   ).click()
                 : "";
 
-              db.filter(
-                (link) =>
-                  link.group === event.target.previousElementSibling.innerText
-              ).forEach((link) => {
-                link.group = "Ungrouped";
-              });
+              linksStorage
+                .filter(
+                  (link) =>
+                    link.group === event.target.previousElementSibling.innerText
+                )
+                .forEach((link) => {
+                  link.group = "Ungrouped";
+                });
               allFilterGroups.splice(
                 allFilterGroups.findIndex(
                   (group) =>
@@ -284,7 +299,10 @@ fieldset.addEventListener("click", function (event: any): any {
                 JSON.stringify(allFilterGroups)
               );
               event.target.parentElement.remove();
-              DATA_STORAGE.setItem("db", JSON.stringify(db));
+              DATA_STORAGE.setItem(
+                "linksStorage",
+                JSON.stringify(linksStorage)
+              );
               prepareLinkGroupSelect();
             })()
           : "";
@@ -345,7 +363,7 @@ searchButton.addEventListener("click", function () {
     );
     return;
   }
-  const searchedLink = db.find(
+  const searchedLink = linksStorage.find(
     (link) =>
       link.description ===
       (document.querySelector('input[type="search"]') as HTMLInputElement).value
@@ -365,7 +383,7 @@ main.addEventListener("click", function (event) {
   if ((event.target as HTMLElement).tagName !== "INPUT") return;
   checkedLinkRadio = event.target as HTMLInputElement;
   editableLinkInfo = {
-    ...db.find(
+    ...linksStorage.find(
       (link) =>
         link.description ===
         (
@@ -410,7 +428,7 @@ linkURL.addEventListener("blur", function () {
     return;
   }
   linkURL.value = linkURL.value.trim();
-  DATA_STORAGE.setItem("db", JSON.stringify(db));
+  DATA_STORAGE.setItem("linksStorage", JSON.stringify(linksStorage));
 });
 linkName.addEventListener("blur", function () {
   if (!editableLinkInfo) return;
@@ -420,7 +438,7 @@ linkName.addEventListener("blur", function () {
     return;
   } else if (
     !(editableLinkInfo.description === linkName.value) &&
-    db.some((link) => link.description === linkName.value)
+    linksStorage.some((link) => link.description === linkName.value)
   ) {
     alert("Link name already exists");
     linkName.value = editableLinkInfo.description;
@@ -432,8 +450,8 @@ document
   .addEventListener("click", function () {
     confirm("Are you sure about deleting this link?")
       ? (() => {
-          db.splice(
-            db.findIndex(
+          linksStorage.splice(
+            linksStorage.findIndex(
               (link) =>
                 link.description === linkName.value &&
                 link.url === linkURL.value &&
@@ -452,9 +470,9 @@ document
             "group"
           );
           prepareSearchInput();
-          DATA_STORAGE.setItem("db", JSON.stringify(db));
+          DATA_STORAGE.setItem("linksStorage", JSON.stringify(linksStorage));
           accountDbRequest("PUT", {
-            db,
+            linksStorage,
           });
         })()
       : "";
@@ -465,7 +483,7 @@ document.getElementById("edit-link-button")!.addEventListener("click", () => {
       reject("");
     }
     if (editableLinkInfo) {
-      const thisLinkInDb = db.find(
+      const thisLinkInDb = linksStorage.find(
         (link) => link.description === editableLinkInfo!.description
       ) as Link;
       thisLinkInDb.description = linkName.value;
@@ -473,7 +491,7 @@ document.getElementById("edit-link-button")!.addEventListener("click", () => {
       thisLinkInDb.group = linkGroupInput.value;
       editableLinkInfo = null;
     } else
-      db.push({
+      linksStorage.push({
         description: linkName.value,
         url: linkURL.value,
         group: linkGroupInput.value,
@@ -482,10 +500,10 @@ document.getElementById("edit-link-button")!.addEventListener("click", () => {
     resolve("");
   }).then(
     () => {
-      DATA_STORAGE.setItem("db", JSON.stringify(db));
+      DATA_STORAGE.setItem("linksStorage", JSON.stringify(linksStorage));
       prepareSearchInput();
       accountDbRequest("PUT", {
-        db,
+        linksStorage,
       });
       checkedLinkRadio!.checked = false;
       checkedLinkRadio = null;
@@ -517,5 +535,3 @@ prepareLinkGroupSelect();
 showAllGroupsInSidebar();
 prepareSearchInput();
 showLinksToUser("All", "group");
-
-export { DATA_STORAGE };

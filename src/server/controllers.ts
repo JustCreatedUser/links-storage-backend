@@ -35,7 +35,7 @@ export async function createUser(req: any, res: any) {
     );
     res.cookie("token", token, { httpOnly: true });
     await newUser.save();
-    res.status(200).redirect(`/app`);
+    res.status(200).redirect(`/main-app`);
   } catch (error: any) {
     console.log(error.message);
   }
@@ -88,7 +88,7 @@ export async function signIn(req: any, res: any) {
       process.env.JWT_SECRET!
     );
     res.cookie("token", token, { httpOnly: true });
-    res.redirect("/app");
+    res.redirect("/main-app");
   } catch {
     console.log("error");
   }
@@ -139,8 +139,6 @@ export async function getAccountDb(req: any, res: any) {
     if (!decoded || (decoded as any).userId !== req.params.user) {
       throw new Error("Account not verified USER");
     }
-    console.log((decoded as any).userId, req.params.user);
-
     const userId = req.params.user as string;
     const userInDB = await USER_SCHEMA.findById(userId);
     if (!userInDB) {
@@ -171,7 +169,7 @@ export async function updateAccountDb(req: any, res: any) {
       return;
     }
     const sentData = req.body;
-    if (sentData.db) userInDB.linksStorage = sentData.db;
+    if (sentData.linksStorage) userInDB.linksStorage = sentData.linksStorage;
 
     if (sentData.allFilterGroups)
       userInDB.allFilterGroups = sentData.allFilterGroups;
