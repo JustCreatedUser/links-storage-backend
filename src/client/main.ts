@@ -65,18 +65,136 @@ accountDbRequest("GET")
     showLinksToUser("All", "group");
   });
 const fieldset = document.querySelector("fieldset") as HTMLElement,
-  searchButton = document.getElementById("search-button") as HTMLElement,
-  linkGroupInput = document.getElementById(
-    "linkGroupInput"
-  ) as HTMLInputElement,
-  linkGroupSelect = document.getElementById(
-    "linkGroupSelect"
-  ) as HTMLDataListElement,
-  linkURL = document.getElementById("linkURL") as HTMLTextAreaElement,
-  linkName = document.getElementById("linkName") as HTMLInputElement;
+  searchButton = document.getElementById("search-button") as HTMLElement;
+
 var editableLinkInfo: Link | null = null,
   checkedLinkRadio: HTMLInputElement | null = null;
+class LinkEditorParts {
+  readonly htmlElement: HTMLElement = document.querySelector("section")!;
+  readonly uriInput = document.getElementById(
+    "uriInput"
+  ) as HTMLTextAreaElement;
+  readonly descriptionInput = document.getElementById(
+    "descriptionInput"
+  ) as HTMLInputElement;
+  readonly deleteButton = document.getElementById("delete-link-button")!;
+  readonly edit_addButton = document.getElementById("edit_add-link-button")!;
+  readonly groupDatalist = document.getElementById(
+    "LinkEditor.prototype.groupDatalist"
+  ) as HTMLDataListElement;
+  readonly groupInput = document.getElementById(
+    "groupInput"
+  ) as HTMLInputElement;
+}
+class LinkEditor extends LinkEditorParts {
+  constructor() {
+    super();
+  }
+  static edit(): void {
+    new Promise((resolve, reject) => {
+      if (areLinkFieldsNotValid()) {
+        reject("");
+      }
+      if (editableLinkInfo) {
+        const thisLinkInDb = linksStorage.find(
+          (link) => link.description === editableLinkInfo!.description
+        ) as Link;
+        thisLinkInDb.description = LinkEditor.prototype.descriptionInput.value;
+        thisLinkInDb.url = LinkEditor.prototype.uriInput.value;
+        thisLinkInDb.group = LinkEditor.prototype.groupInput.value;
+        editableLinkInfo = null;
+      } else
+        linksStorage.push({
+          description: LinkEditor.prototype.descriptionInput.value,
+          url: LinkEditor.prototype.uriInput.value,
+          group: LinkEditor.prototype.groupInput.value,
+        });
 
+      resolve("");
+    }).then(
+      () => {
+        DATA_STORAGE.setItem("linksStorage", JSON.stringify(linksStorage));
+        prepareSearchInput();
+        accountDbRequest("PUT", {
+          linksStorage,
+        });
+        checkedLinkRadio!.checked = false;
+        checkedLinkRadio = null;
+        showLinksToUser(
+          (
+            fieldset.querySelector<HTMLInputElement>("input:checked")!
+              .nextElementSibling as HTMLSpanElement
+          ).innerText,
+          "group"
+        );
+      },
+      () => {
+        alert("Invalid link name, URL or group");
+      }
+    );
+  }
+  static delete(): void {
+    if (!confirm("Are you sure about deleting this link?")) return;
+    linksStorage.splice(
+      linksStorage.findIndex(
+        (link) =>
+          link.description === LinkEditor.prototype.descriptionInput.value &&
+          link.url === LinkEditor.prototype.uriInput.value &&
+          link.group === LinkEditor.prototype.groupInput.value
+      ),
+      1
+    );
+    checkedLinkRadio!.checked = false;
+    checkedLinkRadio = null;
+    editableLinkInfo = null;
+    showLinksToUser(
+      (
+        fieldset.querySelector<HTMLInputElement>("input:checked")!
+          .nextElementSibling as HTMLSpanElement
+      ).innerText,
+      "group"
+    );
+    prepareSearchInput();
+    DATA_STORAGE.setItem("linksStorage", JSON.stringify(linksStorage));
+    accountDbRequest("PUT", {
+      linksStorage,
+    });
+  }
+  static close(event: MouseEvent): void {
+    if (LinkEditor.prototype.htmlElement !== event.target) return;
+    if (editableLinkInfo) {
+      LinkEditor.prototype.descriptionInput.value =
+        editableLinkInfo.description;
+      LinkEditor.prototype.uriInput.value = editableLinkInfo.url;
+      LinkEditor.prototype.groupInput.value = editableLinkInfo.group;
+      editableLinkInfo = null;
+    }
+    checkedLinkRadio!.checked = false;
+  }
+  static verifyUri() {
+    if (!editableLinkInfo) return;
+    if (
+      !LinkEditor.prototype.uriInput.value ||
+      !/https?:\/\//g.test(LinkEditor.prototype.uriInput.value)
+    ) {
+      LinkEditor.prototype.uriInput.value = editableLinkInfo!.url;
+      alert("URL should start from http");
+      return;
+    }
+    LinkEditor.prototype.uriInput.value =
+      LinkEditor.prototype.uriInput.value.trim();
+    DATA_STORAGE.setItem("linksStorage", JSON.stringify(linksStorage));
+  }
+}
+const {
+  deleteButton,
+  descriptionInput,
+  edit_addButton,
+  groupDatalist,
+  groupInput,
+  htmlElement,
+  uriInput,
+} = LinkEditorParts.prototype;
 export interface Link {
   description: string;
   url: string;
@@ -122,9 +240,9 @@ function showAllGroupsInSidebar() {
 }
 
 function prepareLinkGroupSelect() {
-  linkGroupSelect.innerHTML = "";
+  LinkEditor.prototype.groupDatalist.innerHTML = "";
   const allMeaningfulGroups = [...allFilterGroups, "Ungrouped"];
-  linkGroupSelect.append(
+  LinkEditor.prototype.groupDatalist.append(
     ...allMeaningfulGroups.reduce(
       (groups: HTMLOptionElement[], group: string) => {
         const option = document.createElement("option");
@@ -171,98 +289,120 @@ function configureGroupNameInput(
   span: HTMLSpanElement | undefined
 ) {
   const groupInput = document.createElement("input");
-  groupInput.placeholder = "new group";
-  groupInput.type = "text";
+  LinkEditor.prototype.groupInput.placeholder = "new group";
+  LinkEditor.prototype.groupInput.type = "text";
   switch (situation) {
     case "create":
-      groupInput.addEventListener("blur", function (): void {
-        if (!groupInput.value) {
-          groupInput.parentElement?.remove();
-          return;
+      LinkEditor.prototype.groupInput.addEventListener(
+        "blur",
+        function (): void {
+          if (!LinkEditor.prototype.groupInput.value) {
+            LinkEditor.prototype.groupInput.parentElement?.remove();
+            return;
+          }
+          if (
+            [...allFilterGroups, "Ungrouped", "All"].includes(
+              LinkEditor.prototype.groupInput.value
+            )
+          ) {
+            alert("This groups already exists");
+            LinkEditor.prototype.groupInput.parentElement?.remove();
+            return;
+          }
+          LinkEditor.prototype.groupInput.before(
+            (() => {
+              const span = document.createElement("span");
+              (
+                LinkEditor.prototype.groupInput
+                  .previousElementSibling as HTMLSpanElement
+              ).dataset.group = span.innerText =
+                LinkEditor.prototype.groupInput.value;
+              return span;
+            })()
+          );
+          allFilterGroups.push(LinkEditor.prototype.groupInput.value);
+          DATA_STORAGE.setItem(
+            "allFilterGroups",
+            JSON.stringify(allFilterGroups)
+          );
+          prepareLinkGroupSelect();
+          LinkEditor.prototype.groupInput.remove();
         }
-        if (
-          [...allFilterGroups, "Ungrouped", "All"].includes(groupInput.value)
-        ) {
-          alert("This groups already exists");
-          groupInput.parentElement?.remove();
-          return;
-        }
-        groupInput.before(
-          (() => {
-            const span = document.createElement("span");
-            (
-              groupInput.previousElementSibling as HTMLSpanElement
-            ).dataset.group = span.innerText = groupInput.value;
-            return span;
-          })()
-        );
-        allFilterGroups.push(groupInput.value);
-        DATA_STORAGE.setItem(
-          "allFilterGroups",
-          JSON.stringify(allFilterGroups)
-        );
-        prepareLinkGroupSelect();
-        groupInput.remove();
-      });
-      return groupInput;
+      );
+      return LinkEditor.prototype.groupInput;
     case "rename":
-      groupInput.value = span?.innerText as string;
-      span!.before(groupInput);
-      groupInput.focus();
+      LinkEditor.prototype.groupInput.value = span?.innerText as string;
+      span!.before(LinkEditor.prototype.groupInput);
+      LinkEditor.prototype.groupInput.focus();
       span!.style.display = "none";
-      groupInput.addEventListener("blur", function (): void {
-        if (
-          groupInput.value == "" ||
-          [...allFilterGroups, "Ungrouped", "All"].includes(groupInput.value)
-        ) {
-          alert("Field is empty or name already exists. Unsuitable name");
-          (span as HTMLSpanElement).removeAttribute("style");
-          groupInput.remove();
-          return;
-        }
-        allFilterGroups[
-          allFilterGroups.findIndex((group) => group === span!.innerText)
-        ] = groupInput.value;
-        linksStorage
-          .filter((link) => link.group === span!.innerText)
-          .forEach((oldLink) => {
-            oldLink.group = groupInput.value;
-          });
-        DATA_STORAGE.setItem(
-          "allFilterGroups",
-          JSON.stringify(allFilterGroups)
-        );
-        DATA_STORAGE.setItem("linksStorage", JSON.stringify(linksStorage));
-        main
-          .querySelectorAll<HTMLAnchorElement>(
-            `a[data-group="${span!.innerText}"]`
-          )
-          .forEach((anchor) => {
-            anchor.dataset.group = groupInput.value;
-          });
-        span!.innerText = groupInput.value;
-        span!.removeAttribute("style");
-        (span!.parentElement?.firstChild as HTMLInputElement).dataset.group =
-          groupInput.value;
+      LinkEditor.prototype.groupInput.addEventListener(
+        "blur",
+        function (): void {
+          if (
+            LinkEditor.prototype.groupInput.value == "" ||
+            [...allFilterGroups, "Ungrouped", "All"].includes(
+              LinkEditor.prototype.groupInput.value
+            )
+          ) {
+            alert("Field is empty or name already exists. Unsuitable name");
+            (span as HTMLSpanElement).removeAttribute("style");
+            LinkEditor.prototype.groupInput.remove();
+            return;
+          }
+          allFilterGroups[
+            allFilterGroups.findIndex((group) => group === span!.innerText)
+          ] = LinkEditor.prototype.groupInput.value;
+          linksStorage
+            .filter((link) => link.group === span!.innerText)
+            .forEach((oldLink) => {
+              oldLink.group = LinkEditor.prototype.groupInput.value;
+            });
+          DATA_STORAGE.setItem(
+            "allFilterGroups",
+            JSON.stringify(allFilterGroups)
+          );
+          DATA_STORAGE.setItem("linksStorage", JSON.stringify(linksStorage));
+          main
+            .querySelectorAll<HTMLAnchorElement>(
+              `a[data-group="${span!.innerText}"]`
+            )
+            .forEach((anchor) => {
+              anchor.dataset.group = LinkEditor.prototype.groupInput.value;
+            });
+          span!.innerText = LinkEditor.prototype.groupInput.value;
+          span!.removeAttribute("style");
+          (span!.parentElement?.firstChild as HTMLInputElement).dataset.group =
+            LinkEditor.prototype.groupInput.value;
 
-        groupInput.remove();
-        prepareLinkGroupSelect();
-      });
+          LinkEditor.prototype.groupInput.remove();
+          prepareLinkGroupSelect();
+        }
+      );
       return;
   }
 }
 
 function areLinkFieldsNotValid() {
   const isLinkNameNotValid =
-      !linkName.value ||
+      !LinkEditor.prototype.descriptionInput.value ||
       ((editableLinkInfo
-        ? !(linkName.value === editableLinkInfo!.description)
+        ? !(
+            LinkEditor.prototype.descriptionInput.value ===
+            editableLinkInfo!.description
+          )
         : true) &&
-        linksStorage.some((link) => link.description === linkName.value)),
-    isLinkURLNotValid = !linkURL.value || !/https?:\/\//g.test(linkURL.value),
+        linksStorage.some(
+          (link) =>
+            link.description === LinkEditor.prototype.descriptionInput.value
+        )),
+    isLinkURLNotValid =
+      !LinkEditor.prototype.uriInput.value ||
+      !/https?:\/\//g.test(LinkEditor.prototype.uriInput.value),
     isLinkGroupNotValid =
-      !linkGroupInput.value ||
-      ![...allFilterGroups, "Ungrouped"].includes(linkGroupInput.value);
+      !LinkEditor.prototype.groupInput.value ||
+      ![...allFilterGroups, "Ungrouped"].includes(
+        LinkEditor.prototype.groupInput.value
+      );
 
   return isLinkNameNotValid || isLinkURLNotValid || isLinkGroupNotValid;
 }
@@ -402,135 +542,61 @@ main.addEventListener("click", function (event) {
   (configuration.children[0] as HTMLInputElement).value =
     editableLinkInfo.description;
   (configuration.children[1] as HTMLInputElement).value = editableLinkInfo.url;
-  linkGroupInput.value = editableLinkInfo.group;
+  LinkEditor.prototype.groupInput.value = editableLinkInfo.group;
 });
 
 document
   .getElementById("addNewLinkButton")!
   .addEventListener("click", function () {
-    linkName.value = "";
-    linkURL.value = "";
-    linkGroupInput.value = "Ungrouped";
+    LinkEditor.prototype.descriptionInput.value = "";
+    LinkEditor.prototype.uriInput.value = "";
+    LinkEditor.prototype.groupInput.value = "Ungrouped";
     checkedLinkRadio = document.getElementById(
       "createLinkState"
     ) as HTMLInputElement;
   });
 
-linkGroupInput.addEventListener("blur", function () {
+LinkEditor.prototype.groupInput.addEventListener("blur", function () {
   if (!editableLinkInfo) return;
-  if (![...allFilterGroups, "Ungrouped"].includes(linkGroupInput.value)) {
-    linkGroupInput.value = editableLinkInfo.group;
+  if (
+    ![...allFilterGroups, "Ungrouped"].includes(
+      LinkEditor.prototype.groupInput.value
+    )
+  ) {
+    LinkEditor.prototype.groupInput.value = editableLinkInfo.group;
     alert("This group doesn't exist");
     return;
   }
 });
-linkURL.addEventListener("blur", function () {
+LinkEditor.prototype.descriptionInput.addEventListener("blur", function () {
   if (!editableLinkInfo) return;
-  if (!linkURL.value || !/https?:\/\//g.test(linkURL.value)) {
-    linkURL.value = editableLinkInfo!.url;
-    alert("URL should start from http");
-    return;
-  }
-  linkURL.value = linkURL.value.trim();
-  DATA_STORAGE.setItem("linksStorage", JSON.stringify(linksStorage));
-});
-linkName.addEventListener("blur", function () {
-  if (!editableLinkInfo) return;
-  if (!linkName.value) {
+  if (!LinkEditor.prototype.descriptionInput.value) {
     alert("Name should contain at least 1 character");
-    linkName.value = editableLinkInfo.description;
+    LinkEditor.prototype.descriptionInput.value = editableLinkInfo.description;
     return;
   } else if (
-    !(editableLinkInfo.description === linkName.value) &&
-    linksStorage.some((link) => link.description === linkName.value)
+    !(
+      editableLinkInfo.description ===
+      LinkEditor.prototype.descriptionInput.value
+    ) &&
+    linksStorage.some(
+      (link) => link.description === LinkEditor.prototype.descriptionInput.value
+    )
   ) {
     alert("Link name already exists");
-    linkName.value = editableLinkInfo.description;
+    LinkEditor.prototype.descriptionInput.value = editableLinkInfo.description;
     return;
   }
 });
-document
-  .getElementById("delete-link-button")!
-  .addEventListener("click", function () {
-    confirm("Are you sure about deleting this link?")
-      ? (() => {
-          linksStorage.splice(
-            linksStorage.findIndex(
-              (link) =>
-                link.description === linkName.value &&
-                link.url === linkURL.value &&
-                link.group === linkGroupInput.value
-            ),
-            1
-          );
-          checkedLinkRadio!.checked = false;
-          checkedLinkRadio = null;
-          editableLinkInfo = null;
-          showLinksToUser(
-            (
-              fieldset.querySelector<HTMLInputElement>("input:checked")!
-                .nextElementSibling as HTMLSpanElement
-            ).innerText,
-            "group"
-          );
-          prepareSearchInput();
-          DATA_STORAGE.setItem("linksStorage", JSON.stringify(linksStorage));
-          accountDbRequest("PUT", {
-            linksStorage,
-          });
-        })()
-      : "";
-  });
-document.getElementById("edit-link-button")!.addEventListener("click", () => {
-  new Promise((resolve, reject) => {
-    if (areLinkFieldsNotValid()) {
-      reject("");
-    }
-    if (editableLinkInfo) {
-      const thisLinkInDb = linksStorage.find(
-        (link) => link.description === editableLinkInfo!.description
-      ) as Link;
-      thisLinkInDb.description = linkName.value;
-      thisLinkInDb.url = linkURL.value;
-      thisLinkInDb.group = linkGroupInput.value;
-      editableLinkInfo = null;
-    } else
-      linksStorage.push({
-        description: linkName.value,
-        url: linkURL.value,
-        group: linkGroupInput.value,
-      });
 
-    resolve("");
-  }).then(
-    () => {
-      DATA_STORAGE.setItem("linksStorage", JSON.stringify(linksStorage));
-      prepareSearchInput();
-      accountDbRequest("PUT", {
-        linksStorage,
-      });
-      checkedLinkRadio!.checked = false;
-      checkedLinkRadio = null;
-      showLinksToUser(
-        (
-          fieldset.querySelector<HTMLInputElement>("input:checked")!
-            .nextElementSibling as HTMLSpanElement
-        ).innerText,
-        "group"
-      );
-    },
-    () => {
-      alert("Invalid link name, URL or group");
-    }
+function setEventListeners() {
+  document
+    .querySelector("section")!
+    .addEventListener("click", LinkEditor.close);
+  LinkEditor.prototype.edit_addButton.addEventListener(
+    "click",
+    LinkEditor.edit
   );
-});
-document.querySelector("section")!.addEventListener("click", function (event) {
-  if (this !== event.target) return;
-  if (editableLinkInfo) {
-    linkName.value = editableLinkInfo.description;
-    linkURL.value = editableLinkInfo.url;
-    linkGroupInput.value = editableLinkInfo.group;
-    editableLinkInfo = null;
-  }
-  checkedLinkRadio!.checked = false;
-});
+  deleteButton.addEventListener("click", LinkEditor.delete);
+  LinkEditor.prototype.uriInput.addEventListener("blur", LinkEditor.verifyUri);
+}
