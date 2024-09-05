@@ -7,64 +7,64 @@ export const DATA_STORAGE: Storage = (() => {
     return window.sessionStorage;
   }
 })();
+if (!DATA_STORAGE) {
+  alert(
+    "The internet connection is worthless or your browser is too old. Update it or use a different one."
+  );
+}
+let linksStorage: LINK_STORAGE = DATA_STORAGE["linksStorage"] || [],
+  allFilterGroups: string[] = DATA_STORAGE["allFilterGroups"] || [];
 accountDbRequest("GET")
   .then(
-    (response) => {
-      console.log(response, typeof response);
+    (user) => {
+      let data: keyof typeof user;
+      linksStorage = user["linksStorage"];
+      allFilterGroups = (() => {
+        try {
+          if (user["allFilterGroups"].length === 0)
+            throw new Error("groups are empty");
+          return user["allFilterGroups"];
+        } catch {
+          const groups = (() => {
+            const groups = Array.from(
+              new Set(
+                linksStorage.reduce((allGroups: string[], link) => {
+                  allGroups.push(link.group);
+                  return allGroups;
+                }, [])
+              )
+            );
+            if (groups.includes("Ungrouped")) {
+              groups.splice(
+                groups.findIndex((group: string) => group === "Ungrouped"),
+                1
+              );
+            }
+            accountDbRequest("PUT", { allFilterGroups: groups });
+            return groups;
+          })();
+          DATA_STORAGE.setItem("allFilterGroups", JSON.stringify(groups));
+          return groups;
+        }
+      })();
+      for (data in user) {
+        DATA_STORAGE.setItem(data, JSON.stringify(user[data]));
+      }
     },
-    (rejection) => {
-      console.log(rejection);
+    () => {
+      console.log("No response");
     }
   )
   .catch((error) => {
     console.log(error);
+  })
+  .finally(() => {
+    prepareLinkGroupSelect();
+    showAllGroupsInSidebar();
+    prepareSearchInput();
+    showLinksToUser("All", "group");
   });
-
-const linksStorage: LINK_STORAGE = (function () {
-    try {
-      let neededDB = JSON.parse(DATA_STORAGE.linksStorage);
-      return neededDB;
-    } catch {
-      if (!DATA_STORAGE) {
-        alert(
-          "The internet connection is worthless or your browser is too old. Update it or use a different one."
-        );
-      }
-      return [];
-    }
-  })(),
-  allFilterGroups: string[] = (function () {
-    try {
-      let neededGroups: Array<string> = JSON.parse(
-        DATA_STORAGE.getItem("allFilterGroups") as string
-      );
-      if (neededGroups.length == 0) {
-        throw new Error("groups are empty");
-      }
-      return neededGroups;
-    } catch {
-      const groups = (() => {
-        const groups = Array.from(
-          new Set(
-            linksStorage.reduce((allGroups: string[], link) => {
-              allGroups.push(link.group);
-              return allGroups;
-            }, [])
-          )
-        );
-        if (groups.includes("Ungrouped")) {
-          groups.splice(
-            groups.findIndex((group: string) => group === "Ungrouped"),
-            1
-          );
-        }
-        return groups;
-      })();
-      DATA_STORAGE.setItem("allFilterGroups", JSON.stringify(groups));
-      return groups;
-    }
-  })(),
-  fieldset = document.querySelector("fieldset") as HTMLElement,
+const fieldset = document.querySelector("fieldset") as HTMLElement,
   searchButton = document.getElementById("search-button") as HTMLElement,
   linkGroupInput = document.getElementById(
     "linkGroupInput"
@@ -100,6 +100,10 @@ function prepareSearchInput() {
 }
 
 function showAllGroupsInSidebar() {
+  (Array.from(fieldset.children) as HTMLElement[]).forEach((child, index) => {
+    if (index < 3) return;
+    child.remove();
+  });
   allFilterGroups.forEach((group) => {
     const newGroup = document.createElement("label");
     newGroup.innerHTML = /*html*/ `<input type="radio" name="group" data-group="${group}" />
@@ -530,8 +534,3 @@ document.querySelector("section")!.addEventListener("click", function (event) {
   }
   checkedLinkRadio!.checked = false;
 });
-
-prepareLinkGroupSelect();
-showAllGroupsInSidebar();
-prepareSearchInput();
-showLinksToUser("All", "group");
