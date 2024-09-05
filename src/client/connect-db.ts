@@ -26,33 +26,52 @@ export function accountDbRequest(
 ): Promise<"ok" | user> {
   return new Promise((resolve: (value: user | "ok") => void, reject) => {
     try {
-      if (main.dataset.display !== "synchronized") reject();
+      if (main.dataset.display !== "synchronized") {
+        reject(new Error("Dataset display is not synchronized"));
+        return;
+      }
+      const sideBar = document.querySelector("aside");
+      if (!sideBar) {
+        reject(new Error("Aside element not found"));
+        return;
+      }
+
       const xhr = new XMLHttpRequest();
       xhr.timeout = 2000;
-      const url =
-        (document.querySelector("aside")!.children[5] as HTMLAnchorElement)
-          .href + "/db";
+
+      const url = (sideBar.children[5] as HTMLAnchorElement).href + "/db";
       xhr.open(method, url, true);
+
       if (method === "PUT")
         xhr.setRequestHeader("Content-Type", "application/json");
+
       xhr.onload = () => {
         if (method == "GET") {
-          if (xhr.readyState !== XMLHttpRequest.DONE) return;
           const status = xhr.status;
+          if (xhr.readyState !== XMLHttpRequest.DONE) return;
           if (status === 0 || (status >= 200 && status < 400))
-            resolve(JSON.parse(xhr.response) as user);
-          else reject();
+            try {
+              const userData = JSON.parse(xhr.response) as user;
+              resolve(userData);
+            } catch {
+              reject(new Error("Invalid JSON response"));
+            }
+          else reject(new Error(`HTTP error ${status}`));
         } else {
           resolve("ok");
         }
       };
       xhr.onerror = () => {
-        reject();
+        reject(new Error("XHR error"));
+      };
+      xhr.ontimeout = () => {
+        reject(new Error("Request ran out of time"));
       };
 
-      xhr.send(JSON.stringify({ ...data }));
-    } catch {
-      reject();
+      if (data) xhr.send(JSON.stringify(data));
+      else xhr.send();
+    } catch (error) {
+      reject(error);
     }
   });
 }
