@@ -1,6 +1,6 @@
 import { accountDbRequest } from "./connect-db.js";
 import { linkEditor } from "./LinkEditor.js";
-
+import { sidebar } from "./SidebarFunctions.js";
 export const main = document.querySelector("main") as HTMLElement;
 export const DATA_STORAGE: Storage = (() => {
   if (main.dataset.display == "local") {
@@ -66,7 +66,7 @@ accountDbRequest("GET")
   })
   .finally(() => {
     linkEditor.prepareGroupDatalist();
-    showAllGroupsInSidebar();
+    sidebar.displayAllGroups();
     prepareSearchInput();
     showLinksToUser("All", "group");
   });
@@ -93,28 +93,6 @@ export function prepareSearchInput() {
       return allLinks;
     }, [])
   );
-}
-
-export function showAllGroupsInSidebar() {
-  (Array.from(fieldset.children) as HTMLElement[]).forEach((child, index) => {
-    if (index < 3) return;
-    child.remove();
-  });
-  allFilterGroups.forEach((group) => {
-    const newGroup = document.createElement("label");
-    newGroup.innerHTML = /*html*/ `<input type="radio" name="group" data-group="${group}" />
-    <span>${group}</span>
-    <button>-</button>`;
-    fieldset.append(newGroup);
-  });
-  document.querySelectorAll('input[type="radio"]').forEach((input) => {
-    input.addEventListener("change", function (event) {
-      const group = (event.target as HTMLElement).dataset.group;
-      if (group) {
-        showLinksToUser(group, "group");
-      }
-    });
-  });
 }
 
 export function showLinksToUser(
