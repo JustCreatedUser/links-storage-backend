@@ -1,4 +1,4 @@
-import { LINK_STORAGE, main } from "./main";
+import { LINK_STORAGE, main } from "./main.js";
 type user = {
   linksStorage: LINK_STORAGE;
   allFilterGroups: string[];

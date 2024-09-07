@@ -1,19 +1,16 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "ES2016",
     "useDefineForClassFields": true,
-    "module": "NodeNext",
-    "lib": ["ESNext", "DOM"],
-    "moduleResolution": "NodeNext",
+    "module": "ES2022",
+    "moduleResolution": "Classic",
     "strict": true,
-    "resolveJsonModule": true,
     "isolatedModules": true,
-    "esModuleInterop": true,
-    "noEmit": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "sourceMap": true
   },
-  "include": ["src"]
+  "include": ["./client"]
 }
