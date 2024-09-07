@@ -16,6 +16,7 @@ export function authMiddleware(req: any, res: any, next: any) {
   }
 }
 export async function createUser(req: any, res: any) {
+  console.log("post createUser");
   try {
     const { username, password } = req.body,
       hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10)),
@@ -37,7 +38,7 @@ export async function createUser(req: any, res: any) {
     await newUser.save();
     res.status(200).redirect(`/main-app`);
   } catch (error: any) {
-    console.log(error.message);
+    console.log("!createUser ERROR! - " + error.message);
   }
 }
 export function renderLocalApp(_: any, res: any) {
@@ -51,6 +52,7 @@ export function renderLocalApp(_: any, res: any) {
 }
 export async function renderMainApp(req: any, res: any) {
   const app: renderedApp = "synchronized";
+  console.log("entry /main-app");
   try {
     const userId: string = req.userId,
       user = await USER_SCHEMA.findById(userId),
@@ -73,12 +75,14 @@ export async function renderMainApp(req: any, res: any) {
         "This is the main version of this app. Everything here is available: your links are stored properly and securely, you can access the data with account synchronization and it's just a better choice!",
     });
   } catch (error: any) {
+    console.log("!Main-page ERROR! - " + error);
     res.status(401).redirect("/login");
   }
 }
 export async function signIn(req: any, res: any) {
-  const { password, username } = req.body;
+  console.log("post /signIn");
   try {
+    const { password, username } = req.body;
     const user = await USER_SCHEMA.findOne({ username: username });
     if (!user) return res.status(401).redirect("/login?status=again");
     const isValidPassword = bcrypt.compareSync(password, user.password);
@@ -89,14 +93,15 @@ export async function signIn(req: any, res: any) {
     );
     res.cookie("token", token, { httpOnly: true });
     res.redirect("/main-app");
-  } catch {
-    console.log("error");
+  } catch (error) {
+    console.log("!Post singIn ERROR! - " + error);
   }
 }
 export async function goToAccountPage(req: any, res: any) {
+  console.log("entry /users/:user");
   try {
-    const userId = req.params.user,
-      user = await USER_SCHEMA.findById(userId),
+    const userId = req.params.user;
+    const user = await USER_SCHEMA.findById(userId),
       username = (() => {
         if (user) return user.username;
         else {
@@ -110,7 +115,7 @@ export async function goToAccountPage(req: any, res: any) {
         "This is your account's page. Here you can configure your user's params",
     });
   } catch (error: any) {
-    console.log(error.message);
+    console.log("!Account-controller error! - " + error.message);
   }
 }
 export async function deleteUser(req: any, res: any) {

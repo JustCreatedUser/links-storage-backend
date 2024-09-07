@@ -9,8 +9,8 @@ const app = express();
 app
   .set("view engine", "ejs")
   .use(expressEjsLayouts)
-  .use(express.static("public"))
-  .use(express.static("client"))
+  .use(express.static("../public"))
+  .use(express.static("../client"))
   .use(express.urlencoded({ extended: true }))
   .use(express.json())
   .use(cookieParser())
@@ -23,7 +23,7 @@ app.listen(PORT, async () => {
       console.log(result);
     },
     (error) => {
-      console.log(error.message);
+      console.log("!DB-ERROR! - " + error.message);
     }
   );
 });

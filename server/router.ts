@@ -18,6 +18,7 @@ router
     res.redirect("/main-app");
   })
   .get("/login", (req: any, res) => {
+    console.log("entry /login");
     if (req.userId) {
       res.redirect("/main-app");
     }
@@ -29,6 +30,7 @@ router
     });
   })
   .get("/register", (req, res) => {
+    console.log("entry /register");
     const attempt: registerAttempt =
       (req.query as { attempt: "again" }).attempt || "normal";
     res.render("user-form", {
