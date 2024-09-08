@@ -67,16 +67,14 @@ export function prepareSearchInput() {
     }, []));
 }
 export function showLinksToUser(group, elementToShow) {
-    //! показує відфільтровані за групою АБО фільтром результати в html
     linkEditor.currentLink = null;
-    var filteredArray = elementToShow === "group" ? getFilteredResults(group) : elementToShow;
+    var filteredArray = elementToShow === "group" ? filterLinksByGroup(group) : elementToShow;
     main.innerHTML = filteredArray.reduce(function () {
         return (arguments[0] +
             /*html*/ `<div><a data-group="${arguments[1].group}" target="_blank" href="${arguments[1].url}">${arguments[1].description}</a><label for="sectionVisibilityCheckbox">⋮</label></div>`);
     }, "");
 }
-function getFilteredResults(group) {
-    //! відфільтровує результати за групою
+function filterLinksByGroup(group) {
     return linksStorage.filter((item) => {
         return group === "All" ? true : item.group === group;
     });
@@ -203,7 +201,7 @@ fieldset.addEventListener("contextmenu", function (event) {
         return;
     configureGroupNameInput("rename", TARGET);
 });
-searchButton.addEventListener("click", function () {
+function searchOneLink() {
     if (document.querySelector('input[type="search"]')
         .value === "") {
         fieldset.querySelector('input[type="radio"]').click();
@@ -221,17 +219,7 @@ searchButton.addEventListener("click", function () {
     else {
         alert("There is no link you tried to find");
     }
-});
-main.addEventListener("click", function (event) {
-    if (event.target.tagName !== "LABEL")
-        return;
-    linkEditor.currentLink = Object.assign({}, linksStorage.find((link) => link.description ===
-        event.target
-            .previousElementSibling.innerText));
-    linkEditor.descriptionInput.value = linkEditor.currentLink.description;
-    linkEditor.urlInput.value = linkEditor.currentLink.url;
-    linkEditor.groupInput.value = linkEditor.currentLink.group;
-});
+}
 function setEventListeners() {
     document
         .querySelector("section")
@@ -245,6 +233,10 @@ function setEventListeners() {
         linkEditor.prepareForNewLink();
         linkEditor.visibilityCheckbox.checked = true;
     });
+    main.addEventListener("click", (event) => {
+        linkEditor.prepareFieldsForEditing(event);
+    });
+    searchButton.addEventListener("click", searchOneLink);
 }
 setEventListeners();
 //# sourceMappingURL=main.js.map

@@ -198,6 +198,16 @@ class LinkEditor extends LinkEditorParts {
             return groups;
         }, []));
     }
+    prepareFieldsForEditing(event) {
+        if (event.target.tagName !== "LABEL")
+            return;
+        this.currentLink = Object.assign({}, linksStorage.find((link) => link.description ===
+            event.target
+                .previousElementSibling.innerText));
+        this.descriptionInput.value = this.currentLink.description;
+        this.urlInput.value = this.currentLink.url;
+        this.groupInput.value = this.currentLink.group;
+    }
     prepareForNewLink() {
         this.descriptionInput.value = "";
         this.urlInput.value = "";

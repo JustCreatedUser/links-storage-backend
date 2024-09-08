@@ -207,6 +207,23 @@ class LinkEditor extends LinkEditorParts {
       )
     );
   }
+  prepareFieldsForEditing(event: MouseEvent) {
+    if ((event.target as HTMLElement).tagName !== "LABEL") return;
+    this.currentLink = {
+      ...linksStorage.find(
+        (link) =>
+          link.description ===
+          (
+            (event.target as HTMLInputElement)
+              .previousElementSibling as HTMLAnchorElement
+          ).innerText
+      ),
+    } as Link;
+
+    this.descriptionInput.value = this.currentLink.description;
+    this.urlInput.value = this.currentLink.url;
+    this.groupInput.value = this.currentLink.group;
+  }
   prepareForNewLink() {
     this.descriptionInput.value = "";
     this.urlInput.value = "";

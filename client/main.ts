@@ -99,10 +99,9 @@ export function showLinksToUser(
   group: string,
   elementToShow: "group" | LINK_STORAGE
 ) {
-  //! показує відфільтровані за групою АБО фільтром результати в html
   linkEditor.currentLink = null;
   var filteredArray =
-    elementToShow === "group" ? getFilteredResults(group) : elementToShow;
+    elementToShow === "group" ? filterLinksByGroup(group) : elementToShow;
   main.innerHTML = filteredArray.reduce(function (): string {
     return (
       arguments[0] +
@@ -111,8 +110,7 @@ export function showLinksToUser(
   }, "");
 }
 
-function getFilteredResults(group: string) {
-  //! відфільтровує результати за групою
+function filterLinksByGroup(group: string) {
   return linksStorage.filter((item) => {
     return group === "All" ? true : item.group === group;
   }) as LINK_STORAGE;
@@ -301,7 +299,7 @@ fieldset.addEventListener("contextmenu", function (event: MouseEvent): void {
     return;
   configureGroupNameInput("rename", TARGET);
 });
-searchButton.addEventListener("click", function () {
+function searchOneLink() {
   if (
     (document.querySelector('input[type="search"]') as HTMLInputElement)
       .value === ""
@@ -329,25 +327,7 @@ searchButton.addEventListener("click", function () {
   } else {
     alert("There is no link you tried to find");
   }
-});
-main.addEventListener("click", function (event) {
-  if ((event.target as HTMLElement).tagName !== "LABEL") return;
-  linkEditor.currentLink = {
-    ...linksStorage.find(
-      (link) =>
-        link.description ===
-        (
-          (event.target as HTMLInputElement)
-            .previousElementSibling as HTMLAnchorElement
-        ).innerText
-    ),
-  } as Link;
-
-  linkEditor.descriptionInput.value = linkEditor.currentLink.description;
-  linkEditor.urlInput.value = linkEditor.currentLink.url;
-  linkEditor.groupInput.value = linkEditor.currentLink.group;
-});
-
+}
 function setEventListeners() {
   document
     .querySelector("section")!
@@ -365,5 +345,9 @@ function setEventListeners() {
     linkEditor.prepareForNewLink();
     linkEditor.visibilityCheckbox.checked = true;
   });
+  main.addEventListener("click", (event) => {
+    linkEditor.prepareFieldsForEditing(event);
+  });
+  searchButton.addEventListener("click", searchOneLink);
 }
 setEventListeners();
