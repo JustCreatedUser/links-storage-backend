@@ -1,7 +1,7 @@
 import { allFilterGroups, showLinksToUser } from "./main.js";
 class SidebarFunctions {
-  groupList = document.querySelector("fieldset") as HTMLElement;
-  htmlElement: HTMLElement = document.querySelector("aside")!;
+  readonly groupList = document.querySelector("fieldset") as HTMLElement;
+  readonly htmlElement: HTMLElement = document.querySelector("aside")!;
   constructor() {}
   displayAllGroups() {
     this.clearGroupList();

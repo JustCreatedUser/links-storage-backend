@@ -12,7 +12,7 @@ class LinkEditorParts {
             enumerable: true,
             configurable: true,
             writable: true,
-            value: document.getElementById("uriInput")
+            value: document.getElementById("urlInput")
         });
         Object.defineProperty(this, "descriptionInput", {
             enumerable: true,
@@ -50,11 +50,17 @@ class LinkEditorParts {
             writable: true,
             value: null
         });
-        Object.defineProperty(this, "checkedLinkRadio", {
+        Object.defineProperty(this, "visibilityCheckbox", {
             enumerable: true,
             configurable: true,
             writable: true,
-            value: null
+            value: document.getElementById("sectionVisibilityCheckbox")
+        });
+        Object.defineProperty(this, "addLinkCheckbox", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: document.getElementById("newLinkCheckbox")
         });
     }
 }
@@ -82,8 +88,7 @@ class LinkEditor extends LinkEditorParts {
             resolve("");
         })
             .then(() => {
-            this.checkedLinkRadio.checked = false;
-            this.checkedLinkRadio = null;
+            this.visibilityCheckbox.checked = false;
             if (this.currentLink.description === this.descriptionInput.value &&
                 this.currentLink.group === this.groupInput.value &&
                 this.currentLink.url === this.urlInput.value) {
@@ -112,8 +117,7 @@ class LinkEditor extends LinkEditorParts {
         linksStorage.splice(linksStorage.findIndex((link) => link.description === this.descriptionInput.value &&
             link.url === this.urlInput.value &&
             link.group === this.groupInput.value), 1);
-        this.checkedLinkRadio.checked = false;
-        this.checkedLinkRadio = null;
+        this.visibilityCheckbox.checked = false;
         this.currentLink = null;
         showLinksToUser(fieldset.querySelector("input:checked")
             .nextElementSibling.innerText, "group");
@@ -132,7 +136,10 @@ class LinkEditor extends LinkEditorParts {
             this.groupInput.value = this.currentLink.group;
             this.currentLink = null;
         }
-        this.checkedLinkRadio.checked = false;
+        else {
+            this.addLinkCheckbox.checked = false;
+        }
+        this.visibilityCheckbox.checked = false;
     }
     verifyUrl() {
         if (!this.currentLink)
@@ -191,11 +198,10 @@ class LinkEditor extends LinkEditorParts {
             return groups;
         }, []));
     }
-    clear() {
+    prepareForNewLink() {
         this.descriptionInput.value = "";
         this.urlInput.value = "";
         this.groupInput.value = "Ungrouped";
-        this.checkedLinkRadio = document.getElementById("createLinkState");
     }
 }
 export const linkEditor = new LinkEditor();

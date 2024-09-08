@@ -106,7 +106,7 @@ export function showLinksToUser(
   main.innerHTML = filteredArray.reduce(function (): string {
     return (
       arguments[0] +
-      /*html*/ `<div><input id="radio${arguments[2]}" type="radio" name="link-settings"><a data-group="${arguments[1].group}" target="_blank" href="${arguments[1].url}">${arguments[1].description}</a><label for="radio${arguments[2]}">⋮</label></div>`
+      /*html*/ `<div><a data-group="${arguments[1].group}" target="_blank" href="${arguments[1].url}">${arguments[1].description}</a><label for="sectionVisibilityCheckbox">⋮</label></div>`
     );
   }, "");
 }
@@ -331,15 +331,14 @@ searchButton.addEventListener("click", function () {
   }
 });
 main.addEventListener("click", function (event) {
-  if ((event.target as HTMLElement).tagName !== "INPUT") return;
-  linkEditor.checkedLinkRadio = event.target as HTMLInputElement;
+  if ((event.target as HTMLElement).tagName !== "LABEL") return;
   linkEditor.currentLink = {
     ...linksStorage.find(
       (link) =>
         link.description ===
         (
           (event.target as HTMLInputElement)
-            .nextElementSibling as HTMLAnchorElement
+            .previousElementSibling as HTMLAnchorElement
         ).innerText
     ),
   } as Link;
@@ -366,8 +365,9 @@ function setEventListeners() {
   linkEditor.descriptionInput.addEventListener("blur", () =>
     linkEditor.verifyDescription()
   );
-  document
-    .getElementById("addNewLinkButton")!
-    .addEventListener("click", () => linkEditor.clear());
+  document.getElementById("addNewLinkButton")!.addEventListener("click", () => {
+    linkEditor.prepareForNewLink();
+    linkEditor.visibilityCheckbox.checked = true;
+  });
 }
 setEventListeners();

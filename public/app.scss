@@ -32,7 +32,14 @@ $GREY: #5e5e5e;
     transform: scale(1);
   }
 }
-
+@keyframes delay-content-change {
+  from {
+    content: "Add";
+  }
+  to {
+    content: "Edit";
+  }
+}
 input {
   aside &[type="radio"]:checked::after {
     content: "";
@@ -69,8 +76,7 @@ main {
   align-items: center;
   flex-wrap: wrap;
 }
-main:has(input[name]:checked) ~ section,
-input[name="link-settings"]:checked + section {
+input[type="checkbox"]:checked + section {
   opacity: 1;
   transition-delay: 0ms, 0ms;
   visibility: visible;
@@ -93,6 +99,22 @@ section {
   justify-content: center;
   align-items: center;
   padding: 5%;
+}
+.edit_add-link-button {
+  transition-delay: 200ms, 200ms;
+  transition-duration: 0ms, 0ms;
+  transition-property: background-color, color;
+  background-color: $GREY !important;
+  &::after {
+    animation: delay-content-change forwards 300ms;
+    content: "Add";
+  }
+}
+.delete-link-button {
+  transition: 0ms visibility;
+  transition-delay: 300ms;
+  visibility: visible;
+  background-color: black !important;
 }
 .configure-link {
   transition: 200ms scale ease-in-out;
@@ -226,28 +248,21 @@ section button {
   font-size: 13px;
   transition: 200ms font-size;
   min-height: 40px;
-  &:nth-of-type(2) {
-    background-color: black;
-  }
-  &:nth-of-type(1) {
-    background-color: $GREY;
-    &::after {
-      content: "Edit";
-    }
-  }
   &:hover {
     font-size: 15px;
   }
 }
-#createLinkState:checked + section {
+#newLinkCheckbox:checked ~ section {
   button:nth-of-type(2) {
-    display: none;
+    visibility: hidden;
+    transition-delay: 0ms;
   }
-  button:nth-of-type(1) {
-    background-color: $GREEN;
+  .edit_add-link-button {
+    transition-delay: 0ms, 0ms;
+    background-color: $GREEN !important;
     color: black;
     &::after {
-      content: "Add";
+      animation: none;
     }
   }
 }
@@ -271,7 +286,7 @@ section button {
       }
     }
     #delete-link-button {
-      background-color: white;
+      background-color: white !important;
       color: black;
     }
   }

@@ -3,6 +3,7 @@
     "target": "ES2016",
     "useDefineForClassFields": true,
     "module": "ES2022",
+    "lib": ["ES2018", "DOM"],
     "moduleResolution": "Classic",
     "strict": true,
     "isolatedModules": true,

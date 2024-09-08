@@ -11,7 +11,7 @@ import { accountDbRequest } from "./connect-db.js";
 class LinkEditorParts {
   readonly htmlElement: HTMLElement = document.querySelector("section")!;
   readonly urlInput = document.getElementById(
-    "uriInput"
+    "urlInput"
   ) as HTMLTextAreaElement;
   readonly descriptionInput = document.getElementById(
     "descriptionInput"
@@ -25,7 +25,12 @@ class LinkEditorParts {
     "groupInput"
   ) as HTMLInputElement;
   currentLink: Link | null = null;
-  checkedLinkRadio: HTMLInputElement | null = null;
+  readonly visibilityCheckbox = document.getElementById(
+    "sectionVisibilityCheckbox"
+  ) as HTMLInputElement;
+  readonly addLinkCheckbox = document.getElementById(
+    "newLinkCheckbox"
+  ) as HTMLInputElement;
 }
 
 class LinkEditor extends LinkEditorParts {
@@ -54,8 +59,7 @@ class LinkEditor extends LinkEditorParts {
     })
       .then(
         () => {
-          this.checkedLinkRadio!.checked = false;
-          this.checkedLinkRadio = null;
+          this.visibilityCheckbox!.checked = false;
           if (
             this.currentLink!.description === this.descriptionInput.value &&
             this.currentLink!.group === this.groupInput.value &&
@@ -99,8 +103,7 @@ class LinkEditor extends LinkEditorParts {
       ),
       1
     );
-    this.checkedLinkRadio!.checked = false;
-    this.checkedLinkRadio = null;
+    this.visibilityCheckbox!.checked = false;
     this.currentLink = null;
     showLinksToUser(
       (
@@ -122,8 +125,11 @@ class LinkEditor extends LinkEditorParts {
       this.urlInput.value = this.currentLink.url;
       this.groupInput.value = this.currentLink.group;
       this.currentLink = null;
+    } else {
+      this.addLinkCheckbox.checked = false;
     }
-    this.checkedLinkRadio!.checked = false;
+
+    this.visibilityCheckbox!.checked = false;
   }
   verifyUrl() {
     if (!this.currentLink) return;
@@ -201,13 +207,10 @@ class LinkEditor extends LinkEditorParts {
       )
     );
   }
-  clear() {
+  prepareForNewLink() {
     this.descriptionInput.value = "";
     this.urlInput.value = "";
     this.groupInput.value = "Ungrouped";
-    this.checkedLinkRadio = document.getElementById(
-      "createLinkState"
-    ) as HTMLInputElement;
   }
 }
 export const linkEditor = new LinkEditor();

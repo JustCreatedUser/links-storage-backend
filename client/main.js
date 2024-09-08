@@ -1,5 +1,6 @@
 import { accountDbRequest } from "./connect-db.js";
 import { linkEditor } from "./LinkEditor.js";
+import { sidebar } from "./SidebarFunctions.js";
 export const main = document.querySelector("main");
 export const DATA_STORAGE = (() => {
     if (main.dataset.display == "local") {
@@ -50,7 +51,7 @@ accountDbRequest("GET")
 })
     .finally(() => {
     linkEditor.prepareGroupDatalist();
-    showAllGroupsInSidebar();
+    sidebar.displayAllGroups();
     prepareSearchInput();
     showLinksToUser("All", "group");
 });
@@ -65,35 +66,13 @@ export function prepareSearchInput() {
         return allLinks;
     }, []));
 }
-export function showAllGroupsInSidebar() {
-    Array.from(fieldset.children).forEach((child, index) => {
-        if (index < 3)
-            return;
-        child.remove();
-    });
-    allFilterGroups.forEach((group) => {
-        const newGroup = document.createElement("label");
-        newGroup.innerHTML = /*html*/ `<input type="radio" name="group" data-group="${group}" />
-    <span>${group}</span>
-    <button>-</button>`;
-        fieldset.append(newGroup);
-    });
-    document.querySelectorAll('input[type="radio"]').forEach((input) => {
-        input.addEventListener("change", function (event) {
-            const group = event.target.dataset.group;
-            if (group) {
-                showLinksToUser(group, "group");
-            }
-        });
-    });
-}
 export function showLinksToUser(group, elementToShow) {
     //! показує відфільтровані за групою АБО фільтром результати в html
     linkEditor.currentLink = null;
     var filteredArray = elementToShow === "group" ? getFilteredResults(group) : elementToShow;
     main.innerHTML = filteredArray.reduce(function () {
         return (arguments[0] +
-            /*html*/ `<div><input id="radio${arguments[2]}" type="radio" name="link-settings"><a data-group="${arguments[1].group}" target="_blank" href="${arguments[1].url}">${arguments[1].description}</a><label for="radio${arguments[2]}">⋮</label></div>`);
+            /*html*/ `<div><a data-group="${arguments[1].group}" target="_blank" href="${arguments[1].url}">${arguments[1].description}</a><label for="sectionVisibilityCheckbox">⋮</label></div>`);
     }, "");
 }
 function getFilteredResults(group) {
@@ -244,12 +223,11 @@ searchButton.addEventListener("click", function () {
     }
 });
 main.addEventListener("click", function (event) {
-    if (event.target.tagName !== "INPUT")
+    if (event.target.tagName !== "LABEL")
         return;
-    linkEditor.checkedLinkRadio = event.target;
     linkEditor.currentLink = Object.assign({}, linksStorage.find((link) => link.description ===
         event.target
-            .nextElementSibling.innerText));
+            .previousElementSibling.innerText));
     const configuration = document.querySelector(".configure-link");
     configuration.children[0].value =
         linkEditor.currentLink.description;
@@ -266,9 +244,10 @@ function setEventListeners() {
     linkEditor.urlInput.addEventListener("blur", () => linkEditor.verifyUrl());
     linkEditor.groupInput.addEventListener("blur", () => linkEditor.verifyFilterGroup());
     linkEditor.descriptionInput.addEventListener("blur", () => linkEditor.verifyDescription());
-    document
-        .getElementById("addNewLinkButton")
-        .addEventListener("click", () => linkEditor.clear());
+    document.getElementById("addNewLinkButton").addEventListener("click", () => {
+        linkEditor.prepareForNewLink();
+        linkEditor.visibilityCheckbox.checked = true;
+    });
 }
 setEventListeners();
 //# sourceMappingURL=main.js.map

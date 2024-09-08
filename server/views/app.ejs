@@ -1,12 +1,14 @@
 <link rel="stylesheet" href="./app.css" />
 <script defer type="module" src="/main.js"></script>
 <%- include('./partials/sidebar.ejs') %>
+
 <main data-display="<%= app %>"></main>
-<input type="radio" name="link-settings" id="createLinkState" />
+<input type="checkbox" id="newLinkCheckbox" />
+<input type="checkbox" id="sectionVisibilityCheckbox" />
 <section>
   <div class="configure-link">
     <input id="descriptionInput" type="text" placeholder="Name" />
-    <textarea id="uriInput" placeholder="URL"></textarea>
+    <textarea id="urlInput" placeholder="URL"></textarea>
     <input
       autocomplete="off"
       type="search"
@@ -16,7 +18,7 @@
     <datalist id="groupDatalist">
       <option value="Ungrouped">Ungrouped</option>
     </datalist>
-    <button id="edit_add-link-button"></button>
-    <button id="delete-link-button">Delete</button>
+    <button class="edit_add-link-button" id="edit_add-link-button"></button>
+    <button class="delete-link-button" id="delete-link-button">Delete</button>
   </div>
 </section>
