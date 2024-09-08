@@ -6,16 +6,6 @@ $GREY: #5e5e5e;
 @function setControllableSize($size, $var: var(--scale-08-below-650px)) {
   @return calc($size * $var);
 }
-:root {
-  --scale-08-below-650px: 1;
-  --scale-03-below-650px: 1;
-}
-@media (max-width: 650px) {
-  :root {
-    --scale-08-below-650px: 0.8;
-    --scale-03-below-650px: 0.3;
-  }
-}
 @keyframes links {
   from {
     filter: blur(100px);

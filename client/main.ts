@@ -342,13 +342,9 @@ main.addEventListener("click", function (event) {
         ).innerText
     ),
   } as Link;
-  const configuration = document.querySelector(
-    ".configure-link"
-  ) as HTMLDivElement;
-  (configuration.children[0] as HTMLInputElement).value =
-    linkEditor.currentLink.description;
-  (configuration.children[1] as HTMLInputElement).value =
-    linkEditor.currentLink.url;
+
+  linkEditor.descriptionInput.value = linkEditor.currentLink.description;
+  linkEditor.urlInput.value = linkEditor.currentLink.url;
   linkEditor.groupInput.value = linkEditor.currentLink.group;
 });
 

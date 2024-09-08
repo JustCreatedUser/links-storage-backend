@@ -228,11 +228,8 @@ main.addEventListener("click", function (event) {
     linkEditor.currentLink = Object.assign({}, linksStorage.find((link) => link.description ===
         event.target
             .previousElementSibling.innerText));
-    const configuration = document.querySelector(".configure-link");
-    configuration.children[0].value =
-        linkEditor.currentLink.description;
-    configuration.children[1].value =
-        linkEditor.currentLink.url;
+    linkEditor.descriptionInput.value = linkEditor.currentLink.description;
+    linkEditor.urlInput.value = linkEditor.currentLink.url;
     linkEditor.groupInput.value = linkEditor.currentLink.group;
 });
 function setEventListeners() {
