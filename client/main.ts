@@ -1,5 +1,5 @@
 import { accountDbRequest } from "./connect-db.js";
-import { linkEditor } from "./LinkEditor.js";
+import { linkEditor } from "./Editor.js";
 import { sidebar } from "./SidebarFunctions.js";
 export const main = document.querySelector("main") as HTMLElement;
 export const DATA_STORAGE: Storage = (() => {
@@ -329,25 +329,38 @@ function searchOneLink() {
   }
 }
 function setEventListeners() {
-  document
-    .querySelector("section")!
-    .addEventListener("click", (event: MouseEvent) => linkEditor.close(event));
-  linkEditor.edit_addButton.addEventListener("click", () => linkEditor.edit());
-  linkEditor.deleteButton.addEventListener("click", () => linkEditor.delete());
-  linkEditor.urlInput.addEventListener("blur", () => linkEditor.verifyUrl());
-  linkEditor.groupInput.addEventListener("blur", () =>
-    linkEditor.verifyFilterGroup()
-  );
-  linkEditor.descriptionInput.addEventListener("blur", () =>
-    linkEditor.verifyDescription()
-  );
-  document.getElementById("addNewLinkButton")!.addEventListener("click", () => {
-    linkEditor.prepareForNewLink();
-    linkEditor.visibilityCheckbox.checked = true;
-  });
-  main.addEventListener("click", (event) => {
-    linkEditor.prepareFieldsForEditing(event);
-  });
-  searchButton.addEventListener("click", searchOneLink);
+  try {
+    Array.from(document.getElementsByTagName("section")!).forEach((editor) => {
+      editor.addEventListener("click", (event: MouseEvent) =>
+        linkEditor.close(event)
+      );
+    });
+
+    linkEditor.edit_addButton.addEventListener("click", () =>
+      linkEditor.edit()
+    );
+    linkEditor.deleteButton.addEventListener("click", () =>
+      linkEditor.delete()
+    );
+    linkEditor.urlInput.addEventListener("blur", () => linkEditor.verifyUrl());
+    linkEditor.groupInput.addEventListener("blur", () =>
+      linkEditor.verifyFilterGroup()
+    );
+    linkEditor.descriptionInput.addEventListener("blur", () =>
+      linkEditor.verifyDescription()
+    );
+    document
+      .getElementById("addNewLinkButton")!
+      .addEventListener("click", () => {
+        linkEditor.prepareForNewLink();
+        linkEditor.visibilityCheckbox.checked = true;
+      });
+    main.addEventListener("click", (event) => {
+      linkEditor.prepareFieldsForEditing(event);
+    });
+    searchButton.addEventListener("click", searchOneLink);
+  } catch (error: any) {
+    console.log("!EVENT-LISTENERS' ERROR!" + error.message);
+  }
 }
 setEventListeners();

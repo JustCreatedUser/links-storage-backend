@@ -14,6 +14,23 @@ class LinkEditorParts {
             writable: true,
             value: document.getElementById("urlInput")
         });
+        Object.defineProperty(this, "inputs", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: (() => {
+                var object = {
+                    url: document.getElementById("urlInput"),
+                    description: document.getElementById("descriptionInput"),
+                    group: document.getElementById("groupInput"),
+                };
+                if (Object.values(object).some((data) => !data)) {
+                    console.error("!LinkEditor html ERROR!");
+                    return null;
+                }
+                return object;
+            })()
+        });
         Object.defineProperty(this, "descriptionInput", {
             enumerable: true,
             configurable: true,
@@ -214,5 +231,36 @@ class LinkEditor extends LinkEditorParts {
         this.groupInput.value = "Ungrouped";
     }
 }
+// abstract class Editor {
+//   readonly htmlElement: HTMLElement;
+//   readonly visibilityCheckbox: HTMLInputElement;
+//   readonly newItemCheckbox: HTMLInputElement;
+//   editItem: any | null = null;
+//   inputs: editorInputs;
+//   constructor(
+//     htmlElement: HTMLElement,
+//     visibilityCheckbox: HTMLInputElement,
+//     inputs: editorInputs,
+//     newItemCheckbox: HTMLInputElement
+//   ) {
+//     this.htmlElement = htmlElement;
+//     this.visibilityCheckbox = visibilityCheckbox;
+//     this.inputs = inputs;
+//     this.newItemCheckbox = newItemCheckbox;
+//   }
+//   close(event: MouseEvent): void {
+//     if (this.htmlElement !== event.target) return;
+//     if (this.editItem) {
+//       for (const input in this.inputs) {
+//         this.inputs[input].value = this.editItem[input];
+//       }
+//       this.editItem = null;
+//     } else {
+//       this.newItemCheckbox.checked = false;
+//     }
+//     this.visibilityCheckbox!.checked = false;
+//   }
+// }
 export const linkEditor = new LinkEditor();
-//# sourceMappingURL=LinkEditor.js.map
+//
+//# sourceMappingURL=Editor.js.map
