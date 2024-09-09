@@ -1,8 +1,8 @@
 import {
   DATA_STORAGE,
   Link,
-  linksStorage,
-  allFilterGroups,
+  linkStorage,
+  groupStorage,
   showLinksToUser,
   fieldset,
   prepareSearchInput,
@@ -11,71 +11,86 @@ import { accountDbRequest } from "./connect-db.js";
 interface editorInputs {
   [key: string]: HTMLInputElement | HTMLTextAreaElement;
 }
+interface editorConstructorParams {
+  htmlElement: HTMLElement;
+  visibilityCheckbox: HTMLInputElement;
+  inputs: editorInputs;
+  newItemCheckbox: HTMLInputElement;
+}
 interface linkEditorInputs extends editorInputs {
   url: HTMLTextAreaElement;
   description: HTMLInputElement;
   group: HTMLInputElement;
 }
-class LinkEditorParts {
-  readonly htmlElement: HTMLElement = document.querySelector("section")!;
-  readonly urlInput = document.getElementById(
-    "urlInput"
-  ) as HTMLTextAreaElement;
-  readonly inputs = ((): linkEditorInputs | null => {
-    var object: linkEditorInputs = {
-      url: document.getElementById("urlInput") as HTMLTextAreaElement,
-      description: document.getElementById(
-        "descriptionInput"
-      ) as HTMLInputElement,
-      group: document.getElementById("groupInput") as HTMLInputElement,
-    };
-    if (Object.values(object).some((data) => !data)) {
-      console.error("!LinkEditor html ERROR!");
-      return null;
+abstract class Editor {
+  readonly htmlElement: HTMLElement;
+  readonly deleteButton: HTMLElement;
+  readonly edit_addButton: HTMLElement;
+  readonly visibilityCheckbox: HTMLInputElement;
+  readonly newItemCheckbox: HTMLInputElement;
+  editItem: any | null = null;
+  inputs: editorInputs | linkEditorInputs;
+  constructor({
+    htmlElement,
+    visibilityCheckbox,
+    inputs,
+    newItemCheckbox,
+  }: editorConstructorParams) {
+    this.htmlElement = htmlElement;
+    this.deleteButton = htmlElement.querySelector(".delete-button")!;
+    this.visibilityCheckbox = visibilityCheckbox;
+    this.edit_addButton = this.htmlElement.querySelector(".edit_add-button")!;
+    this.inputs = inputs;
+    this.newItemCheckbox = newItemCheckbox;
+  }
+  close(event: MouseEvent): void {
+    if (this.htmlElement !== event.target) return;
+    if (this.editItem) {
+      for (const input in this.inputs) {
+        this.inputs[input].value = this.editItem[input];
+      }
+      this.editItem = null;
+    } else {
+      this.newItemCheckbox.checked = false;
     }
-
-    return object;
-  })();
-  readonly descriptionInput = document.getElementById(
-    "descriptionInput"
-  ) as HTMLInputElement;
-  readonly deleteButton = document.getElementById("delete-link-button")!;
-  readonly edit_addButton = document.getElementById("edit_add-link-button")!;
-  readonly groupDatalist = document.getElementById(
+    this.visibilityCheckbox!.checked = false;
+  }
+}
+// class GroupEditor extends Editor {
+//   constructor(params: editorConstructorParams) {
+//     super(params);
+//   }
+// }
+class LinkEditor extends Editor {
+  groupDatalist: HTMLDataListElement = document.getElementById(
     "groupDatalist"
   ) as HTMLDataListElement;
-  readonly groupInput = document.getElementById(
-    "groupInput"
-  ) as HTMLInputElement;
-  currentLink: Link | null = null;
-  readonly visibilityCheckbox = document.getElementById(
-    "sectionVisibilityCheckbox"
-  ) as HTMLInputElement;
-  readonly addLinkCheckbox = document.getElementById(
-    "newLinkCheckbox"
-  ) as HTMLInputElement;
-}
-class LinkEditor extends LinkEditorParts {
-  constructor() {
-    super();
+  editItem: Link | null = null;
+  constructor({
+    htmlElement,
+    visibilityCheckbox,
+    inputs,
+    newItemCheckbox,
+  }: editorConstructorParams) {
+    super({ htmlElement, visibilityCheckbox, inputs, newItemCheckbox });
   }
   edit(): void {
     new Promise((resolve, reject) => {
       if (!this.verifyAllFields()) {
         reject("");
       }
-      if (this.currentLink) {
-        const thisLinkInDb = linksStorage.find(
-          (link) => link.description === this.currentLink!.description
+      if (this.editItem) {
+        const thisLinkInDb = linkStorage.find(
+          (link) => link.description === this.editItem!.description
         ) as Link;
-        thisLinkInDb.description = this.descriptionInput.value;
-        thisLinkInDb.url = this.urlInput.value;
-        thisLinkInDb.group = this.groupInput.value;
+        thisLinkInDb.description = this.inputs.description.value;
+        thisLinkInDb.url = this.inputs.url.value;
+        thisLinkInDb.group = this.inputs.group.value;
       } else
-        linksStorage.push({
-          description: this.descriptionInput.value,
-          url: this.urlInput.value,
-          group: this.groupInput.value,
+        linkStorage.push({
+          description: this.inputs.description.value,
+          url: this.inputs.url.value,
+          group: this.inputs.group.value,
         });
       resolve("");
     })
@@ -83,19 +98,28 @@ class LinkEditor extends LinkEditorParts {
         () => {
           this.visibilityCheckbox!.checked = false;
           if (
-            this.currentLink!.description === this.descriptionInput.value &&
-            this.currentLink!.group === this.groupInput.value &&
-            this.currentLink!.url === this.urlInput.value
+            this.editItem &&
+            this.editItem.description === this.inputs.description.value &&
+            this.editItem.group === this.inputs.group.value &&
+            this.editItem.url === this.inputs.url.value
           ) {
-            this.currentLink = null;
+            this.editItem = null;
             return;
           }
-          this.currentLink = null;
-          DATA_STORAGE.setItem("linksStorage", JSON.stringify(linksStorage));
+          DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
           prepareSearchInput();
           accountDbRequest("PUT", {
-            linksStorage,
-          });
+            linkStorage,
+          })
+            .then(
+              () => {},
+              (reason) => {
+                console.log(reason);
+              }
+            )
+            .catch((error) => {
+              console.error(error.message);
+            });
 
           showLinksToUser(
             (
@@ -116,17 +140,22 @@ class LinkEditor extends LinkEditorParts {
   }
   delete(): void {
     if (!confirm("Are you sure about deleting this link?")) return;
-    linksStorage.splice(
-      linksStorage.findIndex(
-        (link) =>
-          link.description === this.descriptionInput.value &&
-          link.url === this.urlInput.value &&
-          link.group === this.groupInput.value
-      ),
+    linkStorage.splice(
+      linkStorage.findIndex((link) => {
+        let right: boolean = true;
+        let data: keyof typeof link;
+        for (data in link) {
+          if (!(link[data] === this.inputs[data].value!)) {
+            right = false;
+            break;
+          }
+        }
+        return right;
+      }),
       1
     );
     this.visibilityCheckbox!.checked = false;
-    this.currentLink = null;
+    this.editItem = null;
     showLinksToUser(
       (
         fieldset.querySelector<HTMLInputElement>("input:checked")!
@@ -135,87 +164,77 @@ class LinkEditor extends LinkEditorParts {
       "group"
     );
     prepareSearchInput();
-    DATA_STORAGE.setItem("linksStorage", JSON.stringify(linksStorage));
+    DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
     accountDbRequest("PUT", {
-      linksStorage,
-    });
-  }
-  close(event: MouseEvent): void {
-    if (this.htmlElement !== event.target) return;
-    if (this.currentLink) {
-      this.descriptionInput.value = this.currentLink.description;
-      this.urlInput.value = this.currentLink.url;
-      this.groupInput.value = this.currentLink.group;
-      this.currentLink = null;
-    } else {
-      this.addLinkCheckbox.checked = false;
-    }
-
-    this.visibilityCheckbox!.checked = false;
+      linkStorage,
+    })
+      .then(
+        () => {},
+        (reason) => {
+          console.log(reason);
+        }
+      )
+      .catch((error) => {
+        console.log(error.message);
+      });
   }
   verifyUrl() {
-    if (!this.currentLink) return;
-    if (!this.urlInput.value || !/https?:\/\//g.test(this.urlInput.value)) {
-      this.urlInput.value = this.currentLink.url;
+    if (!this.editItem) return;
+    if (!this.inputs.url.value || !/https?:\/\//g.test(this.inputs.url.value)) {
+      this.inputs.url.value = this.editItem.url;
       alert("URL should start from http");
       return;
     }
-    this.urlInput.value = this.urlInput.value.trim();
+    this.inputs.url.value = this.inputs.url.value.trim();
   }
   verifyDescription() {
-    if (!this.currentLink) return;
-    if (!this.descriptionInput.value) {
+    if (!this.editItem) return;
+    if (!this.inputs.description.value) {
       alert("Name should contain at least 1 character");
-      this.descriptionInput.value = this.currentLink.description;
+      this.inputs.description.value = this.editItem.description;
       return;
     } else if (
-      !(this.currentLink.description === this.descriptionInput.value) &&
-      linksStorage.some(
-        (link) => link.description === this.descriptionInput.value
+      !(this.editItem.description === this.inputs.description.value) &&
+      linkStorage.some(
+        (link) => link.description === this.inputs.description.value
       )
     ) {
       alert("Link name already exists");
-      this.descriptionInput.value = this.currentLink.description;
+      this.inputs.description.value = this.editItem.description;
       return;
     }
   }
   verifyFilterGroup() {
-    if (!this.currentLink) return;
-    if (![...allFilterGroups, "Ungrouped"].includes(this.groupInput.value)) {
-      this.groupInput.value = this.currentLink.group;
+    if (!this.editItem) return;
+    if (![...groupStorage, "Ungrouped"].includes(this.inputs.group.value)) {
+      this.inputs.group.value = this.editItem.group;
       alert("This group doesn't exist");
       return;
     }
   }
   verifyAllFields(): boolean {
     const isLinkNameNotValid =
-        !linkEditor.descriptionInput.value ||
-        ((linkEditor.currentLink
+        !linkEditor.inputs.description.value ||
+        ((linkEditor.editItem
           ? !(
-              linkEditor.descriptionInput.value ===
-              linkEditor.currentLink!.description
+              linkEditor.inputs.description.value ===
+              linkEditor.editItem!.description
             )
           : true) &&
-          linksStorage.some(
-            (link) => link.description === linkEditor.descriptionInput.value
+          linkStorage.some(
+            (link) => link.description === linkEditor.inputs.description.value
           )),
       isLinkURLNotValid =
-        !linkEditor.urlInput.value ||
-        !/https?:\/\//g.test(linkEditor.urlInput.value),
+        !linkEditor.inputs.url.value ||
+        !/https?:\/\//g.test(linkEditor.inputs.url.value),
       isLinkGroupNotValid =
-        !linkEditor.groupInput.value ||
-        ![...allFilterGroups, "Ungrouped"].includes(
-          linkEditor.groupInput.value
-        );
-    console.log(
-      !(isLinkNameNotValid || isLinkURLNotValid || isLinkGroupNotValid)
-    );
-
+        !linkEditor.inputs.group.value ||
+        ![...groupStorage, "Ungrouped"].includes(linkEditor.inputs.group.value);
     return !(isLinkNameNotValid || isLinkURLNotValid || isLinkGroupNotValid);
   }
   prepareGroupDatalist() {
     linkEditor.groupDatalist.innerHTML = "";
-    const allMeaningfulGroups = [...allFilterGroups, "Ungrouped"];
+    const allMeaningfulGroups = [...groupStorage, "Ungrouped"];
     linkEditor.groupDatalist.append(
       ...allMeaningfulGroups.reduce(
         (groups: HTMLOptionElement[], group: string) => {
@@ -231,8 +250,8 @@ class LinkEditor extends LinkEditorParts {
   }
   prepareFieldsForEditing(event: MouseEvent) {
     if ((event.target as HTMLElement).tagName !== "LABEL") return;
-    this.currentLink = {
-      ...linksStorage.find(
+    this.editItem = {
+      ...linkStorage.find(
         (link) =>
           link.description ===
           (
@@ -242,45 +261,39 @@ class LinkEditor extends LinkEditorParts {
       ),
     } as Link;
 
-    this.descriptionInput.value = this.currentLink.description;
-    this.urlInput.value = this.currentLink.url;
-    this.groupInput.value = this.currentLink.group;
+    this.inputs.description.value = this.editItem.description;
+    this.inputs.url.value = this.editItem.url;
+    this.inputs.group.value = this.editItem.group;
   }
   prepareForNewLink() {
-    this.descriptionInput.value = "";
-    this.urlInput.value = "";
-    this.groupInput.value = "Ungrouped";
+    this.inputs.description.value = "";
+    this.inputs.url.value = "";
+    this.inputs.group.value = "Ungrouped";
   }
 }
-// abstract class Editor {
-//   readonly htmlElement: HTMLElement;
-//   readonly visibilityCheckbox: HTMLInputElement;
-//   readonly newItemCheckbox: HTMLInputElement;
-//   editItem: any | null = null;
-//   inputs: editorInputs;
-//   constructor(
-//     htmlElement: HTMLElement,
-//     visibilityCheckbox: HTMLInputElement,
-//     inputs: editorInputs,
-//     newItemCheckbox: HTMLInputElement
-//   ) {
-//     this.htmlElement = htmlElement;
-//     this.visibilityCheckbox = visibilityCheckbox;
-//     this.inputs = inputs;
-//     this.newItemCheckbox = newItemCheckbox;
-//   }
-//   close(event: MouseEvent): void {
-//     if (this.htmlElement !== event.target) return;
-//     if (this.editItem) {
-//       for (const input in this.inputs) {
-//         this.inputs[input].value = this.editItem[input];
-//       }
-//       this.editItem = null;
-//     } else {
-//       this.newItemCheckbox.checked = false;
-//     }
-//     this.visibilityCheckbox!.checked = false;
-//   }
-// }
-export const linkEditor = new LinkEditor();
-//
+
+export const linkEditor = new LinkEditor({
+  htmlElement: document.querySelector("section")!,
+  inputs: ((): linkEditorInputs => {
+    var object: linkEditorInputs = {
+      url: document.getElementById("urlInput") as HTMLTextAreaElement,
+      description: document.getElementById(
+        "descriptionInput"
+      ) as HTMLInputElement,
+      group: document.getElementById("groupInput") as HTMLInputElement,
+    };
+    if (Object.values(object).some((data) => !data)) {
+      console.log(Object.values(object));
+
+      console.error("!LinkEditor html ERROR!");
+    }
+
+    return object;
+  })(),
+  newItemCheckbox: document.getElementById(
+    "newLinkCheckbox"
+  ) as HTMLInputElement,
+  visibilityCheckbox: document.getElementById(
+    "sectionVisibilityCheckbox"
+  ) as HTMLInputElement,
+}); //, const groupEditor = new GroupEditor()

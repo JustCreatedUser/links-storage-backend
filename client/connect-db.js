@@ -3,7 +3,7 @@ export function accountDbRequest(method, data) {
     return new Promise((resolve, reject) => {
         try {
             if (main.dataset.display !== "synchronized") {
-                reject(new Error("Dataset display is not synchronized"));
+                reject("App version is not synchronized, db request rejected");
                 return;
             }
             const sideBar = document.querySelector("aside");
@@ -12,9 +12,9 @@ export function accountDbRequest(method, data) {
                 return;
             }
             const xhr = new XMLHttpRequest();
-            xhr.timeout = 2000;
+            xhr.timeout = 5000;
             const url = sideBar.children[5].href + "/db";
-            xhr.open(method, url, true);
+            xhr.open(method, url);
             if (method === "PUT")
                 xhr.setRequestHeader("Content-Type", "application/json");
             xhr.onload = () => {

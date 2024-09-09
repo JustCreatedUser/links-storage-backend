@@ -1,4 +1,4 @@
-import { allFilterGroups, showLinksToUser } from "./main.js";
+import { groupStorage, showLinksToUser } from "./main.js";
 class SidebarFunctions {
     constructor() {
         Object.defineProperty(this, "groupList", {
@@ -36,7 +36,7 @@ class SidebarFunctions {
         });
     }
     fillGroupList() {
-        allFilterGroups.forEach((group) => {
+        groupStorage.forEach((group) => {
             const newGroup = document.createElement("label");
             newGroup.innerHTML = /*html*/ `<input type="radio" name="group" data-group="${group}" />
           <span>${group}</span>

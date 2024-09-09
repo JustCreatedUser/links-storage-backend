@@ -90,7 +90,7 @@ section {
   align-items: center;
   padding: 5%;
 }
-.edit_add-link-button {
+.edit_add-button {
   transition-delay: 200ms, 200ms;
   transition-duration: 0ms, 0ms;
   transition-property: background-color, color;
@@ -100,7 +100,7 @@ section {
     content: "Add";
   }
 }
-.delete-link-button {
+.delete-button {
   transition: 0ms visibility;
   transition-delay: 300ms;
   visibility: visible;
@@ -236,7 +236,6 @@ section button {
   cursor: pointer;
   color: white;
   font-size: 13px;
-  transition: 200ms font-size;
   min-height: 40px;
   &:hover {
     font-size: 15px;
@@ -247,7 +246,7 @@ section button {
     visibility: hidden;
     transition-delay: 0ms;
   }
-  .edit_add-link-button {
+  .edit_add-button {
     transition-delay: 0ms, 0ms;
     background-color: $GREEN !important;
     color: black;

@@ -62,13 +62,13 @@ export async function renderMainApp(req: any, res: any) {
           throw new Error("NO USER");
         }
       })(),
-      linksStorage = JSON.stringify(user.linksStorage),
-      allFilterGroups = JSON.stringify(user.allFilterGroups);
+      linkStorage = JSON.stringify(user.linkStorage),
+      groupStorage = JSON.stringify(user.groupStorage);
     res.render("app", {
       app,
       username,
-      linksStorage,
-      allFilterGroups,
+      linkStorage,
+      groupStorage,
       userId,
       headerTitle: "Main app",
       metaPageDescription:
@@ -150,8 +150,8 @@ export async function getAccountDb(req: any, res: any) {
       throw new Error("NO USER");
     }
     res.status(200).json({
-      linksStorage: userInDB.linksStorage,
-      allFilterGroups: userInDB.allFilterGroups,
+      linkStorage: userInDB.linkStorage,
+      groupStorage: userInDB.groupStorage,
     });
   } catch (error: any) {
     console.log(error.message);
@@ -174,10 +174,9 @@ export async function updateAccountDb(req: any, res: any) {
       return;
     }
     const sentData = req.body;
-    if (sentData.linksStorage) userInDB.linksStorage = sentData.linksStorage;
+    if (sentData.linkStorage) userInDB.linkStorage = sentData.linkStorage;
 
-    if (sentData.allFilterGroups)
-      userInDB.allFilterGroups = sentData.allFilterGroups;
+    if (sentData.groupStorage) userInDB.groupStorage = sentData.groupStorage;
 
     await userInDB.save();
     res.status(200).send("saved");

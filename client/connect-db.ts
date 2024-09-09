@@ -1,19 +1,19 @@
 import { LINK_STORAGE, main } from "./main.js";
 type user = {
-  linksStorage: LINK_STORAGE;
-  allFilterGroups: string[];
+  linkStorage: LINK_STORAGE;
+  groupStorage: string[];
 };
 type requestMethod = "GET" | "PUT";
 type putData = data1 | data2 | syncLocalData;
 type data1 = {
-  linksStorage: LINK_STORAGE;
+  linkStorage: LINK_STORAGE;
 };
 type data2 = {
-  allFilterGroups: string[];
+  groupStorage: string[];
 };
 type syncLocalData = {
-  linksStorage: LINK_STORAGE;
-  allFilterGroups: string[];
+  linkStorage: LINK_STORAGE;
+  groupStorage: string[];
 };
 /**
  * Makes a request to the account database.
@@ -25,26 +25,26 @@ type syncLocalData = {
  * @example
  * // GET request
  * accountDbRequest("GET").then((user) => {
- *   console.log(user); // { linksStorage: LINK_STORAGE, allFilterGroups: string[] }
+ *   console.log(user); // { linkStorage: LINK_STORAGE, groupStorage: string[] }
  * });
  *
  * @example
  * // PUT request with data1
- * const data: data1 = { linksStorage: LINK_STORAGE };
+ * const data: data1 = { linkStorage: LINK_STORAGE };
  * accountDbRequest("PUT", data).then((response) => {
  *   console.log(response); // "ok"
  * });
  *
  * @example
  * // PUT request with data2
- * const data: data2 = { allFilterGroups: ["filter1", "filter2"] };
+ * const data: data2 = { groupStorage: ["filter1", "filter2"] };
  * accountDbRequest("PUT", data).then((response) => {
  *   console.log(response); // "ok"
  * });
  *
  * @example
  * // PUT request with syncLocalData
- * const data: syncLocalData = { linksStorage: LINK_STORAGE, allFilterGroups: ["filter1", "filter2"] };
+ * const data: syncLocalData = { linkStorage: LINK_STORAGE, groupStorage: ["filter1", "filter2"] };
  * accountDbRequest("PUT", data).then((response) => {
  *   console.log(response); // "ok"
  * });
@@ -60,7 +60,7 @@ export function accountDbRequest(
   return new Promise((resolve: (value: user | "ok") => void, reject) => {
     try {
       if (main.dataset.display !== "synchronized") {
-        reject(new Error("Dataset display is not synchronized"));
+        reject("App version is not synchronized, db request rejected");
         return;
       }
       const sideBar = document.querySelector("aside");
@@ -70,10 +70,10 @@ export function accountDbRequest(
       }
 
       const xhr = new XMLHttpRequest();
-      xhr.timeout = 2000;
+      xhr.timeout = 5000;
 
       const url = (sideBar.children[5] as HTMLAnchorElement).href + "/db";
-      xhr.open(method, url, true);
+      xhr.open(method, url);
 
       if (method === "PUT")
         xhr.setRequestHeader("Content-Type", "application/json");

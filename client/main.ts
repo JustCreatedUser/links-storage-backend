@@ -14,27 +14,25 @@ if (!DATA_STORAGE) {
     "The internet connection is worthless or your browser is too old. Update it or use a different one."
   );
 }
-export let linksStorage: LINK_STORAGE = JSON.parse(
-    DATA_STORAGE["linksStorage"] || "[]"
+export let linkStorage: LINK_STORAGE = JSON.parse(
+    DATA_STORAGE["linkStorage"] || "[]"
   ),
-  allFilterGroups: string[] = JSON.parse(
-    DATA_STORAGE["allFilterGroups"] || "[]"
-  );
+  groupStorage: string[] = JSON.parse(DATA_STORAGE["groupStorage"] || "[]");
 accountDbRequest("GET")
   .then(
     (user) => {
       let data: keyof typeof user;
-      linksStorage = user["linksStorage"];
-      allFilterGroups = (() => {
+      linkStorage = user["linkStorage"];
+      groupStorage = (() => {
         try {
-          if (user["allFilterGroups"].length === 0)
+          if (user["groupStorage"].length === 0)
             throw new Error("groups are empty");
-          return user["allFilterGroups"];
+          return user["groupStorage"];
         } catch {
           const groups = (() => {
             const groups = Array.from(
               new Set(
-                linksStorage.reduce((allGroups: string[], link) => {
+                linkStorage.reduce((allGroups: string[], link) => {
                   allGroups.push(link.group);
                   return allGroups;
                 }, [])
@@ -46,10 +44,20 @@ accountDbRequest("GET")
                 1
               );
             }
-            accountDbRequest("PUT", { allFilterGroups: groups });
+            if (!groups.length) return groups;
+            accountDbRequest("PUT", { groupStorage: groups })
+              .then(
+                () => {},
+                (reason) => {
+                  console.log(reason);
+                }
+              )
+              .catch((error) => {
+                console.error(error.message);
+              });
             return groups;
           })();
-          DATA_STORAGE.setItem("allFilterGroups", JSON.stringify(groups));
+          DATA_STORAGE.setItem("groupStorage", JSON.stringify(groups));
           return groups;
         }
       })();
@@ -72,7 +80,6 @@ accountDbRequest("GET")
   });
 export const fieldset = document.querySelector("fieldset") as HTMLElement,
   searchButton = document.getElementById("search-button") as HTMLElement;
-
 export interface Link {
   description: string;
   url: string;
@@ -86,7 +93,7 @@ export function prepareSearchInput() {
   ) as HTMLDataListElement;
   datalist.innerHTML = "";
   datalist.append(
-    ...linksStorage.reduce((allLinks: Array<HTMLOptionElement>, link) => {
+    ...linkStorage.reduce((allLinks: Array<HTMLOptionElement>, link) => {
       const option = document.createElement("option");
       option.value = link.description;
       allLinks.push(option);
@@ -99,7 +106,7 @@ export function showLinksToUser(
   group: string,
   elementToShow: "group" | LINK_STORAGE
 ) {
-  linkEditor.currentLink = null;
+  linkEditor.editItem = null;
   var filteredArray =
     elementToShow === "group" ? filterLinksByGroup(group) : elementToShow;
   main.innerHTML = filteredArray.reduce(function (): string {
@@ -111,7 +118,7 @@ export function showLinksToUser(
 }
 
 function filterLinksByGroup(group: string) {
-  return linksStorage.filter((item) => {
+  return linkStorage.filter((item) => {
     return group === "All" ? true : item.group === group;
   }) as LINK_STORAGE;
 }
@@ -138,9 +145,7 @@ function configureGroupNameInput(
           groupInput.parentElement?.remove();
           return;
         }
-        if (
-          [...allFilterGroups, "Ungrouped", "All"].includes(groupInput.value)
-        ) {
+        if ([...groupStorage, "Ungrouped", "All"].includes(groupInput.value)) {
           alert("This groups already exists");
           groupInput.parentElement?.remove();
           return;
@@ -154,58 +159,52 @@ function configureGroupNameInput(
             return span;
           })()
         );
-        allFilterGroups.push(groupInput.value);
-        DATA_STORAGE.setItem(
-          "allFilterGroups",
-          JSON.stringify(allFilterGroups)
-        );
+        groupStorage.push(groupInput.value);
+        DATA_STORAGE.setItem("groupStorage", JSON.stringify(groupStorage));
         linkEditor.prepareGroupDatalist();
         groupInput.remove();
       });
       return groupInput;
     case "rename":
-      linkEditor.groupInput.value = span?.innerText as string;
-      span!.before(linkEditor.groupInput);
-      linkEditor.groupInput.focus();
+      linkEditor.inputs.group.value = span?.innerText as string;
+      span!.before(linkEditor.inputs.group);
+      linkEditor.inputs.group.focus();
       span!.style.display = "none";
-      linkEditor.groupInput.addEventListener("blur", function (): void {
+      linkEditor.inputs.group.addEventListener("blur", function (): void {
         if (
-          linkEditor.groupInput.value == "" ||
-          [...allFilterGroups, "Ungrouped", "All"].includes(
-            linkEditor.groupInput.value
+          linkEditor.inputs.group.value == "" ||
+          [...groupStorage, "Ungrouped", "All"].includes(
+            linkEditor.inputs.group.value
           )
         ) {
           alert("Field is empty or name already exists. Unsuitable name");
           (span as HTMLSpanElement).removeAttribute("style");
-          linkEditor.groupInput.remove();
+          linkEditor.inputs.group.remove();
           return;
         }
-        allFilterGroups[
-          allFilterGroups.findIndex((group) => group === span!.innerText)
-        ] = linkEditor.groupInput.value;
-        linksStorage
+        groupStorage[
+          groupStorage.findIndex((group) => group === span!.innerText)
+        ] = linkEditor.inputs.group.value;
+        linkStorage
           .filter((link) => link.group === span!.innerText)
           .forEach((oldLink) => {
-            oldLink.group = linkEditor.groupInput.value;
+            oldLink.group = linkEditor.inputs.group.value;
           });
-        DATA_STORAGE.setItem(
-          "allFilterGroups",
-          JSON.stringify(allFilterGroups)
-        );
-        DATA_STORAGE.setItem("linksStorage", JSON.stringify(linksStorage));
+        DATA_STORAGE.setItem("groupStorage", JSON.stringify(groupStorage));
+        DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
         main
           .querySelectorAll<HTMLAnchorElement>(
             `a[data-group="${span!.innerText}"]`
           )
           .forEach((anchor) => {
-            anchor.dataset.group = linkEditor.groupInput.value;
+            anchor.dataset.group = linkEditor.inputs.group.value;
           });
-        span!.innerText = linkEditor.groupInput.value;
+        span!.innerText = linkEditor.inputs.group.value;
         span!.removeAttribute("style");
         (span!.parentElement?.firstChild as HTMLInputElement).dataset.group =
-          linkEditor.groupInput.value;
+          linkEditor.inputs.group.value;
 
-        linkEditor.groupInput.remove();
+        linkEditor.inputs.group.remove();
         linkEditor.prepareGroupDatalist();
       });
       return;
@@ -228,7 +227,7 @@ fieldset.addEventListener("click", function (event: any): any {
                   ).click()
                 : "";
 
-              linksStorage
+              linkStorage
                 .filter(
                   (link) =>
                     link.group === event.target.previousElementSibling.innerText
@@ -236,22 +235,19 @@ fieldset.addEventListener("click", function (event: any): any {
                 .forEach((link) => {
                   link.group = "Ungrouped";
                 });
-              allFilterGroups.splice(
-                allFilterGroups.findIndex(
+              groupStorage.splice(
+                groupStorage.findIndex(
                   (group) =>
                     group === event.target.previousElementSibling.innerText
                 ),
                 1
               );
               DATA_STORAGE.setItem(
-                "allFilterGroups",
-                JSON.stringify(allFilterGroups)
+                "groupStorage",
+                JSON.stringify(groupStorage)
               );
               event.target.parentElement.remove();
-              DATA_STORAGE.setItem(
-                "linksStorage",
-                JSON.stringify(linksStorage)
-              );
+              DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
               linkEditor.prepareGroupDatalist();
             })()
           : "";
@@ -312,7 +308,7 @@ function searchOneLink() {
     );
     return;
   }
-  const searchedLink = linksStorage.find(
+  const searchedLink = linkStorage.find(
     (link) =>
       link.description ===
       (document.querySelector('input[type="search"]') as HTMLInputElement).value
@@ -342,11 +338,13 @@ function setEventListeners() {
     linkEditor.deleteButton.addEventListener("click", () =>
       linkEditor.delete()
     );
-    linkEditor.urlInput.addEventListener("blur", () => linkEditor.verifyUrl());
-    linkEditor.groupInput.addEventListener("blur", () =>
+    linkEditor.inputs.url.addEventListener("blur", () =>
+      linkEditor.verifyUrl()
+    );
+    linkEditor.inputs.group.addEventListener("blur", () =>
       linkEditor.verifyFilterGroup()
     );
-    linkEditor.descriptionInput.addEventListener("blur", () =>
+    linkEditor.inputs.description.addEventListener("blur", () =>
       linkEditor.verifyDescription()
     );
     document
