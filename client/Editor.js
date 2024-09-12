@@ -1,7 +1,7 @@
 import { DATA_STORAGE, linkStorage, groupStorage, showLinksToUser, fieldset, prepareSearchInput, } from "./main.js";
 import { accountDbRequest } from "./connect-db.js";
 class Editor {
-    constructor({ htmlElement, visibilityCheckbox, inputs, newItemCheckbox, }) {
+    constructor({ htmlElement, inputs }) {
         Object.defineProperty(this, "htmlElement", {
             enumerable: true,
             configurable: true,
@@ -20,17 +20,11 @@ class Editor {
             writable: true,
             value: void 0
         });
-        Object.defineProperty(this, "visibilityCheckbox", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
         Object.defineProperty(this, "newItemCheckbox", {
             enumerable: true,
             configurable: true,
             writable: true,
-            value: void 0
+            value: document.getElementById("newItemCheckbox")
         });
         Object.defineProperty(this, "editItem", {
             enumerable: true,
@@ -46,13 +40,14 @@ class Editor {
         });
         this.htmlElement = htmlElement;
         this.deleteButton = htmlElement.querySelector(".delete-button");
-        this.visibilityCheckbox = visibilityCheckbox;
         this.edit_addButton = this.htmlElement.querySelector(".edit_add-button");
         this.inputs = inputs;
-        this.newItemCheckbox = newItemCheckbox;
+    }
+    open() {
+        this.htmlElement.classList.add("opened");
     }
     close(event) {
-        if (this.htmlElement !== event.target)
+        if (this.htmlElement !== (event === null || event === void 0 ? void 0 : event.target))
             return;
         if (this.editItem) {
             for (const input in this.inputs) {
@@ -63,17 +58,21 @@ class Editor {
         else {
             this.newItemCheckbox.checked = false;
         }
-        this.visibilityCheckbox.checked = false;
+        this.htmlElement.classList.remove("opened");
     }
 }
-// class GroupEditor extends Editor {
-//   constructor(params: editorConstructorParams) {
-//     super(params);
-//   }
-// }
+class GroupEditor extends Editor {
+    constructor(params) {
+        super(params);
+    }
+    prepareForNewGroup( /*event: MouseEvent*/) {
+        this.htmlElement.querySelector("#nameInput").value =
+            "";
+    }
+}
 class LinkEditor extends Editor {
-    constructor({ htmlElement, visibilityCheckbox, inputs, newItemCheckbox, }) {
-        super({ htmlElement, visibilityCheckbox, inputs, newItemCheckbox });
+    constructor({ htmlElement, inputs }) {
+        super({ htmlElement, inputs });
         Object.defineProperty(this, "groupDatalist", {
             enumerable: true,
             configurable: true,
@@ -107,7 +106,7 @@ class LinkEditor extends Editor {
             resolve("");
         })
             .then(() => {
-            this.visibilityCheckbox.checked = false;
+            this.close();
             if (this.editItem &&
                 this.editItem.description === this.inputs.description.value &&
                 this.editItem.group === this.inputs.group.value &&
@@ -150,7 +149,7 @@ class LinkEditor extends Editor {
             }
             return right;
         }), 1);
-        this.visibilityCheckbox.checked = false;
+        this.close();
         this.editItem = null;
         showLinksToUser(fieldset.querySelector("input:checked")
             .nextElementSibling.innerText, "group");
@@ -223,7 +222,7 @@ class LinkEditor extends Editor {
         }, []));
     }
     prepareFieldsForEditing(event) {
-        if (event.target.tagName !== "LABEL")
+        if (event.target.tagName !== "BUTTON")
             return;
         this.editItem = Object.assign({}, linkStorage.find((link) => link.description ===
             event.target
@@ -239,7 +238,7 @@ class LinkEditor extends Editor {
     }
 }
 export const linkEditor = new LinkEditor({
-    htmlElement: document.querySelector("section"),
+    htmlElement: document.body.querySelector(".link-editor"),
     inputs: (() => {
         var object = {
             url: document.getElementById("urlInput"),
@@ -252,7 +251,17 @@ export const linkEditor = new LinkEditor({
         }
         return object;
     })(),
-    newItemCheckbox: document.getElementById("newLinkCheckbox"),
-    visibilityCheckbox: document.getElementById("sectionVisibilityCheckbox"),
-}); //, const groupEditor = new GroupEditor()
+}), groupEditor = new GroupEditor({
+    htmlElement: document.body.querySelector(".group-editor"),
+    inputs: (() => {
+        var object = {
+            name: document.getElementById("nameInput"),
+        };
+        if (Object.values(object).some((data) => !data)) {
+            console.log(Object.values(object));
+            console.error("!groupEditor html ERROR!");
+        }
+        return object;
+    })(),
+});
 //# sourceMappingURL=Editor.js.map

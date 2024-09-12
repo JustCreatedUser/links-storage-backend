@@ -30,7 +30,7 @@ class SidebarFunctions {
       const newGroup = document.createElement("label");
       newGroup.innerHTML = /*html*/ `<input type="radio" name="group" data-group="${group}" />
           <span>${group}</span>
-          <button>-</button>`;
+          <button>✎</button>`;
       this.groupList.append(newGroup);
     });
   }

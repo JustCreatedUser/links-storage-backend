@@ -3,10 +3,9 @@
 <%- include('./partials/sidebar.ejs') %>
 
 <main data-display="<%= app %>"></main>
-<input type="checkbox" id="newLinkCheckbox" />
-<input type="checkbox" id="sectionVisibilityCheckbox" />
-<section>
-  <div class="configure-link">
+<input type="checkbox" id="newItemCheckbox" />
+<section class="editor link-editor">
+  <div>
     <input id="descriptionInput" type="text" placeholder="Name" />
     <textarea id="urlInput" placeholder="URL"></textarea>
     <input
@@ -18,6 +17,19 @@
     <datalist id="groupDatalist">
       <option value="Ungrouped">Ungrouped</option>
     </datalist>
+    <button class="edit_add-button" id="edit_add-link-button"></button>
+    <button class="delete-button" id="delete-link-button">Delete</button>
+  </div>
+</section>
+<section class="editor group-editor">
+  <div>
+    <input id="nameInput" type="text" placeholder="Name" />
+    <ol id="group-links-list">
+      <!-- <li>
+        Telegram
+        <label>🛈</label>
+      </li> -->
+    </ol>
     <button class="edit_add-button" id="edit_add-link-button"></button>
     <button class="delete-button" id="delete-link-button">Delete</button>
   </div>

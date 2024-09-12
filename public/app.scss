@@ -14,7 +14,7 @@ $GREY: #5e5e5e;
     filter: blur(0px);
   }
 }
-@keyframes configure-link {
+@keyframes editor-animation {
   from {
     transform: scale(0.8);
   }
@@ -66,15 +66,30 @@ main {
   align-items: center;
   flex-wrap: wrap;
 }
-input[type="checkbox"]:checked + section {
-  opacity: 1;
-  transition-delay: 0ms, 0ms;
-  visibility: visible;
-  .configure-link {
-    scale: 1;
+.opened {
+  opacity: 1 !important;
+  z-index: 3 !important;
+  transition-delay: 0ms, 0ms !important;
+  visibility: visible !important;
+  div {
+    scale: 1 !important;
   }
 }
-section {
+#newItemCheckbox:checked ~ section {
+  button:nth-of-type(2) {
+    visibility: hidden;
+    transition-delay: 0ms;
+  }
+  .edit_add-button {
+    transition-delay: 0ms, 0ms;
+    background-color: $GREEN !important;
+    color: black;
+    &::after {
+      animation: none;
+    }
+  }
+}
+.editor {
   opacity: 0;
   transition-duration: 0ms, 200ms;
   transition-delay: 200ms, 0ms;
@@ -82,7 +97,6 @@ section {
   cursor: pointer;
   background-color: rgba(0, 0, 0, 0.535);
   visibility: hidden;
-  z-index: 3;
   inset: 0;
   display: flex;
   position: fixed;
@@ -106,10 +120,10 @@ section {
   visibility: visible;
   background-color: black !important;
 }
-.configure-link {
+.editor div {
   transition: 200ms scale ease-in-out;
   scale: 0.8;
-  animation: configure-link 200ms forwards ease-in-out 1;
+  animation: editor-animation 200ms forwards ease-in-out 1;
   display: grid;
   grid-template-rows: 1fr 1fr 2fr 1fr;
   width: clamp(300px, 50vw, 800px);
@@ -170,15 +184,18 @@ fieldset {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  label {
+  > label {
     display: flex;
     align-items: center;
     word-break: break-all;
+    label {
+      background-color: white;
+    }
   }
   input {
     -webkit-text-fill-color: white;
   }
-  button {
+  legend button {
     font-size: 30px;
     line-height: 0px;
     margin-left: 5px;
@@ -211,7 +228,7 @@ textarea {
   outline: none;
 }
 a {
-  font-size: 32px;
+  font-size: calc(32px * var(--scale-08-below-650px));
   color: white;
 }
 main div {
@@ -222,17 +239,19 @@ main div {
   padding: setControllableSize(20px);
   border-radius: setControllableSize(10px);
   background-color: $GREY;
-  label {
+  button {
+    background-color: transparent;
+    border: none;
     color: white;
     position: absolute;
     top: 5px;
     right: 5px;
     cursor: pointer;
-    font-size: 30px;
+    font-size: calc(30px * var(--scale-08-below-650px));
     line-height: 25px;
   }
 }
-section button {
+.editor button {
   cursor: pointer;
   color: white;
   font-size: 13px;
@@ -241,21 +260,6 @@ section button {
     font-size: 15px;
   }
 }
-#newLinkCheckbox:checked ~ section {
-  button:nth-of-type(2) {
-    visibility: hidden;
-    transition-delay: 0ms;
-  }
-  .edit_add-button {
-    transition-delay: 0ms, 0ms;
-    background-color: $GREEN !important;
-    color: black;
-    &::after {
-      animation: none;
-    }
-  }
-}
-
 #dark-theme:checked {
   ~ main {
     div {

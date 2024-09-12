@@ -1,6 +1,7 @@
 import { accountDbRequest } from "./connect-db.js";
-import { linkEditor } from "./Editor.js";
+import * as editors from "./Editor.js";
 import { sidebar } from "./SidebarFunctions.js";
+const { groupEditor, linkEditor } = editors;
 export const main = document.querySelector("main");
 export const DATA_STORAGE = (() => {
     if (main.dataset.display == "local") {
@@ -75,12 +76,22 @@ export function prepareSearchInput() {
     }, []));
 }
 export function showLinksToUser(group, elementToShow) {
+    main.innerHTML = "";
     linkEditor.editItem = null;
     var filteredArray = elementToShow === "group" ? filterLinksByGroup(group) : elementToShow;
-    main.innerHTML = filteredArray.reduce(function () {
-        return (arguments[0] +
-            /*html*/ `<div><a data-group="${arguments[1].group}" target="_blank" href="${arguments[1].url}">${arguments[1].description}</a><label for="sectionVisibilityCheckbox">⋮</label></div>`);
-    }, "");
+    filteredArray.forEach((link) => {
+        const linkElement = document.createElement("div");
+        linkElement.innerHTML = /*html*/ `
+      <a href="${link.url}" target="_blank">${link.description}</a>
+      `;
+        const linkEditorOpen = document.createElement("button");
+        linkEditorOpen.addEventListener("click", () => {
+            linkEditor.open();
+        });
+        linkEditorOpen.textContent = "⋮";
+        linkElement.appendChild(linkEditorOpen);
+        main.appendChild(linkElement);
+    });
 }
 function filterLinksByGroup(group) {
     return linkStorage.filter((item) => {
@@ -176,26 +187,38 @@ fieldset.addEventListener("click", function (event) {
                     : "";
                 break;
             case "+":
-                const newGroup = document.createElement("label");
-                newGroup.prepend((() => {
-                    const radio = document.createElement("input");
-                    radio.dataset.group = "";
-                    radio.name = "group";
-                    radio.setAttribute("type", "radio");
-                    radio.addEventListener("change", function (event) {
-                        const group = event.target.dataset.group;
-                        if (group) {
-                            showLinksToUser(group, "group");
-                        }
-                    });
-                    return radio;
-                })(), configureGroupNameInput("create", undefined), (() => {
-                    const button = document.createElement("button");
-                    button.innerText = "-";
-                    return button;
-                })());
-                fieldset.append(newGroup);
-                fieldset.lastChild.children[1].focus();
+                groupEditor.open();
+                groupEditor.prepareForNewGroup( /*event*/);
+                groupEditor.newItemCheckbox.checked = true;
+                // const newGroup = document.createElement("label");
+                // newGroup.prepend(
+                //   (() => {
+                //     const radio = document.createElement("input");
+                //     radio.dataset.group = "";
+                //     radio.name = "group";
+                //     radio.setAttribute("type", "radio");
+                //     radio.addEventListener("change", function (event) {
+                //       const group = (event.target as HTMLElement).dataset.group;
+                //       if (group) {
+                //         showLinksToUser(group, "group");
+                //       }
+                //     });
+                //     return radio;
+                //   })(),
+                //   configureGroupNameInput("create", undefined),
+                //   (() => {
+                //     const button = document.createElement("button");
+                //     button.onclick = function () {
+                //       //groupEditor.open();
+                //     };
+                //     button.innerHTML = "<img src='./pencil.svg'>";
+                //     return button;
+                //   })()
+                // );
+                // fieldset.append(newGroup);
+                // (
+                //   (fieldset.lastChild as HTMLElement).children[1] as HTMLElement
+                // ).focus();
                 break;
         }
     }
@@ -230,8 +253,9 @@ function searchOneLink() {
 }
 function setEventListeners() {
     try {
-        Array.from(document.getElementsByTagName("section")).forEach((editor) => {
-            editor.addEventListener("click", (event) => linkEditor.close(event));
+        Array.from(document.getElementsByClassName("editor")).forEach((editor) => {
+            const currentEditor = (editor.classList[1].split("-")[0] + "Editor");
+            editor.addEventListener("click", (event) => editors[currentEditor].close(event));
         });
         linkEditor.edit_addButton.addEventListener("click", () => linkEditor.edit());
         linkEditor.deleteButton.addEventListener("click", () => linkEditor.delete());
@@ -242,7 +266,7 @@ function setEventListeners() {
             .getElementById("addNewLinkButton")
             .addEventListener("click", () => {
             linkEditor.prepareForNewLink();
-            linkEditor.visibilityCheckbox.checked = true;
+            linkEditor.open();
         });
         main.addEventListener("click", (event) => {
             linkEditor.prepareFieldsForEditing(event);
@@ -250,7 +274,7 @@ function setEventListeners() {
         searchButton.addEventListener("click", searchOneLink);
     }
     catch (error) {
-        console.log("!EVENT-LISTENERS' ERROR!" + error.message);
+        console.log("!EVENT-LISTENERS' ERROR! - " + error.message);
     }
 }
 setEventListeners();
