@@ -8,6 +8,7 @@ import {
   prepareSearchInput,
 } from "./main.js";
 import { accountDbRequest } from "./connect-db.js";
+import { sidebar } from "./SidebarFunctions.js";
 interface editorInputs {
   [key: string]: HTMLInputElement | HTMLTextAreaElement;
 }
@@ -28,7 +29,7 @@ abstract class Editor {
   readonly deleteButton: HTMLElement;
   readonly edit_addButton: HTMLElement;
   editItem: any | null = null;
-  inputs: editorInputs | linkEditorInputs;
+  inputs: editorInputs | linkEditorInputs | groupEditorInputs;
   constructor({ htmlElement, inputs }: editorConstructorParams) {
     this.htmlElement = htmlElement;
     this.deleteButton = htmlElement.querySelector(".delete-button")!;
@@ -39,10 +40,10 @@ abstract class Editor {
     this.htmlElement.classList.add("opened");
   }
   close(event?: MouseEvent): void {
-    if (this.htmlElement !== event?.target) return;
+    if (arguments[0] && this.htmlElement !== event!.target) return;
     if (this.editItem) {
       for (const input in this.inputs) {
-        this.inputs[input].value = this.editItem[input];
+        this.inputs[input].value = "";
       }
       this.editItem = null;
     } else {
@@ -61,6 +62,35 @@ class GroupEditor extends Editor {
   prepareForNewGroup(/*event: MouseEvent*/) {
     this.styleForNewItem();
     this.inputs.name.value = "";
+  }
+  edit() {
+    console.log(
+      this.inputs.name.value && !groupStorage.includes(this.inputs.name.value)
+    );
+
+    if (
+      !this.inputs.name.value &&
+      groupStorage.includes(this.inputs.name.value)
+    )
+      return;
+    const newGroup = this.inputs.name.value;
+    groupStorage.push(newGroup);
+    DATA_STORAGE.setItem("groupStorage", JSON.stringify(groupStorage));
+    accountDbRequest("PUT", { groupStorage })
+      .then(
+        (message) => {
+          console.log(message);
+        },
+        (reason) => {
+          console.log(reason);
+        }
+      )
+      .catch((error) => {
+        console.error("!PUT request ERROR!!! - " + error.message);
+      });
+    sidebar.displayAllGroups();
+    linkEditor.prepareGroupDatalist();
+    this.close();
   }
 }
 class LinkEditor extends Editor {

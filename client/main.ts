@@ -223,44 +223,44 @@ fieldset.addEventListener("click", function (event: any): any {
   if (event.target.tagName === "BUTTON") {
     const action = event.target.innerText;
     switch (action) {
-      case "-":
-        confirm(
-          "Are you sure to remove this group? All elements will be ungrouped, but not deleted"
-        )
-          ? (() => {
-              event.target.parentElement.firstChild.checked
-                ? (
-                    fieldset.querySelector(
-                      "[data-group=All]"
-                    ) as HTMLInputElement
-                  ).click()
-                : "";
+      // case "-":
+      //   confirm(
+      //     "Are you sure to remove this group? All elements will be ungrouped, but not deleted"
+      //   )
+      //     ? (() => {
+      //         event.target.parentElement.firstChild.checked
+      //           ? (
+      //               fieldset.querySelector(
+      //                 "[data-group=All]"
+      //               ) as HTMLInputElement
+      //             ).click()
+      //           : "";
 
-              linkStorage
-                .filter(
-                  (link) =>
-                    link.group === event.target.previousElementSibling.innerText
-                )
-                .forEach((link) => {
-                  link.group = "Ungrouped";
-                });
-              groupStorage.splice(
-                groupStorage.findIndex(
-                  (group) =>
-                    group === event.target.previousElementSibling.innerText
-                ),
-                1
-              );
-              DATA_STORAGE.setItem(
-                "groupStorage",
-                JSON.stringify(groupStorage)
-              );
-              event.target.parentElement.remove();
-              DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
-              linkEditor.prepareGroupDatalist();
-            })()
-          : "";
-        break;
+      //         linkStorage
+      //           .filter(
+      //             (link) =>
+      //               link.group === event.target.previousElementSibling.innerText
+      //           )
+      //           .forEach((link) => {
+      //             link.group = "Ungrouped";
+      //           });
+      //         groupStorage.splice(
+      //           groupStorage.findIndex(
+      //             (group) =>
+      //               group === event.target.previousElementSibling.innerText
+      //           ),
+      //           1
+      //         );
+      //         DATA_STORAGE.setItem(
+      //           "groupStorage",
+      //           JSON.stringify(groupStorage)
+      //         );
+      //         event.target.parentElement.remove();
+      //         DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
+      //         linkEditor.prepareGroupDatalist();
+      //       })()
+      //     : "";
+      //   break;
       case "+":
         groupEditor.open();
         groupEditor.prepareForNewGroup(/*event*/);
@@ -373,6 +373,9 @@ function setEventListeners() {
       });
     main.addEventListener("click", (event) => {
       linkEditor.prepareFieldsForEditing(event);
+    });
+    groupEditor.edit_addButton.addEventListener("click", () => {
+      groupEditor.edit();
     });
     searchButton.addEventListener("click", searchOneLink);
   } catch (error: any) {

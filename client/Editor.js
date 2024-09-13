@@ -1,5 +1,6 @@
 import { DATA_STORAGE, linkStorage, groupStorage, showLinksToUser, fieldset, prepareSearchInput, } from "./main.js";
 import { accountDbRequest } from "./connect-db.js";
+import { sidebar } from "./SidebarFunctions.js";
 class Editor {
     constructor({ htmlElement, inputs }) {
         Object.defineProperty(this, "htmlElement", {
@@ -41,11 +42,11 @@ class Editor {
         this.htmlElement.classList.add("opened");
     }
     close(event) {
-        if (this.htmlElement !== (event === null || event === void 0 ? void 0 : event.target))
+        if (arguments[0] && this.htmlElement !== event.target)
             return;
         if (this.editItem) {
             for (const input in this.inputs) {
-                this.inputs[input].value = this.editItem[input];
+                this.inputs[input].value = "";
             }
             this.editItem = null;
         }
@@ -65,6 +66,27 @@ class GroupEditor extends Editor {
     prepareForNewGroup( /*event: MouseEvent*/) {
         this.styleForNewItem();
         this.inputs.name.value = "";
+    }
+    edit() {
+        console.log(this.inputs.name.value && !groupStorage.includes(this.inputs.name.value));
+        if (!this.inputs.name.value &&
+            groupStorage.includes(this.inputs.name.value))
+            return;
+        const newGroup = this.inputs.name.value;
+        groupStorage.push(newGroup);
+        DATA_STORAGE.setItem("groupStorage", JSON.stringify(groupStorage));
+        accountDbRequest("PUT", { groupStorage })
+            .then((message) => {
+            console.log(message);
+        }, (reason) => {
+            console.log(reason);
+        })
+            .catch((error) => {
+            console.error("!PUT request ERROR!!! - " + error.message);
+        });
+        sidebar.displayAllGroups();
+        linkEditor.prepareGroupDatalist();
+        this.close();
     }
 }
 class LinkEditor extends Editor {
