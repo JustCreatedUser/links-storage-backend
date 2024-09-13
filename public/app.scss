@@ -73,22 +73,31 @@ main {
   visibility: visible !important;
   div {
     scale: 1 !important;
+    transition: 200ms scale ease-in-out !important;
   }
 }
-#newItemCheckbox:checked ~ section {
-  button:nth-of-type(2) {
-    visibility: hidden;
-    transition-delay: 0ms;
+.editor.opened:not(.create-new) .delete-button {
+  display: inline-block;
+}
+.create-new .edit_add-button {
+  transition-delay: 0ms, 0ms;
+  background-color: $GREEN !important;
+  color: black;
+  &::after {
+    animation: none;
   }
-  .edit_add-button {
-    transition-delay: 0ms, 0ms;
-    background-color: $GREEN !important;
-    color: black;
-    &::after {
-      animation: none;
+}
+.group-editor.opened {
+  &:not(.create-new) {
+    .group-links-list {
+      display: inline-block;
     }
   }
+  > div {
+    height: clamp(300px, 20vh, 700px);
+  }
 }
+
 .editor {
   opacity: 0;
   transition-duration: 0ms, 200ms;
@@ -114,14 +123,18 @@ main {
     content: "Add";
   }
 }
+.group-links-list {
+  transition: allow-discrete 300ms;
+  display: none;
+}
 .delete-button {
-  transition: 0ms visibility;
-  transition-delay: 300ms;
-  visibility: visible;
+  display: none;
+  transition: allow-discrete 300ms;
   background-color: black !important;
 }
 .editor div {
-  transition: 200ms scale ease-in-out;
+  transition: 200ms scale ease-in-out, grid-template-rows 0s 300ms,
+    height 0s 300ms;
   scale: 0.8;
   animation: editor-animation 200ms forwards ease-in-out 1;
   display: grid;

@@ -27,9 +27,6 @@ abstract class Editor {
   readonly htmlElement: HTMLElement;
   readonly deleteButton: HTMLElement;
   readonly edit_addButton: HTMLElement;
-  readonly newItemCheckbox: HTMLInputElement = document.getElementById(
-    "newItemCheckbox"
-  ) as HTMLInputElement;
   editItem: any | null = null;
   inputs: editorInputs | linkEditorInputs;
   constructor({ htmlElement, inputs }: editorConstructorParams) {
@@ -49,9 +46,12 @@ abstract class Editor {
       }
       this.editItem = null;
     } else {
-      this.newItemCheckbox.checked = false;
+      this.htmlElement.classList.remove("create-new");
     }
     this.htmlElement.classList.remove("opened");
+  }
+  styleForNewItem() {
+    this.htmlElement.classList.add("create-new");
   }
 }
 class GroupEditor extends Editor {
@@ -59,8 +59,8 @@ class GroupEditor extends Editor {
     super(params);
   }
   prepareForNewGroup(/*event: MouseEvent*/) {
-    (this.htmlElement.querySelector("#nameInput") as HTMLInputElement).value =
-      "";
+    this.styleForNewItem();
+    this.inputs.name.value = "";
   }
 }
 class LinkEditor extends Editor {
@@ -262,7 +262,8 @@ class LinkEditor extends Editor {
     this.inputs.url.value = this.editItem.url;
     this.inputs.group.value = this.editItem.group;
   }
-  prepareForNewLink() {
+  prepareFieldsForNewLink() {
+    this.styleForNewItem();
     this.inputs.description.value = "";
     this.inputs.url.value = "";
     this.inputs.group.value = "Ungrouped";

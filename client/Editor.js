@@ -20,12 +20,6 @@ class Editor {
             writable: true,
             value: void 0
         });
-        Object.defineProperty(this, "newItemCheckbox", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: document.getElementById("newItemCheckbox")
-        });
         Object.defineProperty(this, "editItem", {
             enumerable: true,
             configurable: true,
@@ -56,9 +50,12 @@ class Editor {
             this.editItem = null;
         }
         else {
-            this.newItemCheckbox.checked = false;
+            this.htmlElement.classList.remove("create-new");
         }
         this.htmlElement.classList.remove("opened");
+    }
+    styleForNewItem() {
+        this.htmlElement.classList.add("create-new");
     }
 }
 class GroupEditor extends Editor {
@@ -66,8 +63,8 @@ class GroupEditor extends Editor {
         super(params);
     }
     prepareForNewGroup( /*event: MouseEvent*/) {
-        this.htmlElement.querySelector("#nameInput").value =
-            "";
+        this.styleForNewItem();
+        this.inputs.name.value = "";
     }
 }
 class LinkEditor extends Editor {
@@ -231,7 +228,8 @@ class LinkEditor extends Editor {
         this.inputs.url.value = this.editItem.url;
         this.inputs.group.value = this.editItem.group;
     }
-    prepareForNewLink() {
+    prepareFieldsForNewLink() {
+        this.styleForNewItem();
         this.inputs.description.value = "";
         this.inputs.url.value = "";
         this.inputs.group.value = "Ungrouped";

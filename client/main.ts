@@ -264,7 +264,6 @@ fieldset.addEventListener("click", function (event: any): any {
       case "+":
         groupEditor.open();
         groupEditor.prepareForNewGroup(/*event*/);
-        groupEditor.newItemCheckbox.checked = true;
         // const newGroup = document.createElement("label");
         // newGroup.prepend(
         //   (() => {
@@ -369,7 +368,7 @@ function setEventListeners() {
     document
       .getElementById("addNewLinkButton")!
       .addEventListener("click", () => {
-        linkEditor.prepareForNewLink();
+        linkEditor.prepareFieldsForNewLink();
         linkEditor.open();
       });
     main.addEventListener("click", (event) => {

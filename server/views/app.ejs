@@ -3,7 +3,6 @@
 <%- include('./partials/sidebar.ejs') %>
 
 <main data-display="<%= app %>"></main>
-<input type="checkbox" id="newItemCheckbox" />
 <section class="editor link-editor">
   <div>
     <input id="descriptionInput" type="text" placeholder="Name" />
@@ -24,7 +23,7 @@
 <section class="editor group-editor">
   <div>
     <input id="nameInput" type="text" placeholder="Name" />
-    <ol id="group-links-list">
+    <ol class="group-links-list">
       <!-- <li>
         Telegram
         <label>🛈</label>
