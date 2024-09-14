@@ -10,7 +10,7 @@ app
   .set("view engine", "ejs")
   .use(expressEjsLayouts)
   .use(express.static("../public"))
-  .use(express.static("../client"))
+  .use(express.static("../client/js"))
   .use(express.urlencoded({ extended: true }))
   .use(express.json())
   .use(cookieParser())

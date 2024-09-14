@@ -68,7 +68,6 @@ class GroupEditor extends Editor {
         this.inputs.name.value = "";
     }
     edit() {
-        console.log(this.inputs.name.value && !groupStorage.includes(this.inputs.name.value));
         if (!this.inputs.name.value &&
             groupStorage.includes(this.inputs.name.value))
             return;
@@ -76,14 +75,8 @@ class GroupEditor extends Editor {
         groupStorage.push(newGroup);
         DATA_STORAGE.setItem("groupStorage", JSON.stringify(groupStorage));
         accountDbRequest("PUT", { groupStorage })
-            .then((message) => {
-            console.log(message);
-        }, (reason) => {
-            console.log(reason);
-        })
-            .catch((error) => {
-            console.error("!PUT request ERROR!!! - " + error.message);
-        });
+            .then(console.log, console.warn)
+            .catch(console.error);
         sidebar.displayAllGroups();
         linkEditor.prepareGroupDatalist();
         this.close();
@@ -135,15 +128,12 @@ class LinkEditor extends Editor {
             }
             DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
             prepareSearchInput();
-            accountDbRequest("PUT", {
+            const putLinks = {
                 linkStorage,
-            })
-                .then(() => { }, (reason) => {
-                console.log(reason);
-            })
-                .catch((error) => {
-                console.error(error.message);
-            });
+            };
+            accountDbRequest("PUT", putLinks)
+                .then(console.log, console.warn)
+                .catch(console.error);
             showLinksToUser(fieldset.querySelector("input:checked")
                 .nextElementSibling.innerText, "group");
         }, () => {
@@ -174,15 +164,10 @@ class LinkEditor extends Editor {
             .nextElementSibling.innerText, "group");
         prepareSearchInput();
         DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
-        accountDbRequest("PUT", {
-            linkStorage,
-        })
-            .then(() => { }, (reason) => {
-            console.log(reason);
-        })
-            .catch((error) => {
-            console.log(error.message);
-        });
+        const putLinks = { linkStorage };
+        accountDbRequest("PUT", putLinks)
+            .then(console.log, console.warn)
+            .catch(console.error);
     }
     verifyUrl() {
         if (!this.editItem)

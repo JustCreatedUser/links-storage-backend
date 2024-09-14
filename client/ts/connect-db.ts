@@ -4,11 +4,11 @@ type user = {
   groupStorage: string[];
 };
 type requestMethod = "GET" | "PUT";
-type putData = data1 | data2 | syncLocalData;
-type data1 = {
+type putData = putLinks | putGroups | syncLocalData;
+type putLinks = {
   linkStorage: LINK_STORAGE;
 };
-type data2 = {
+type putGroups = {
   groupStorage: string[];
 };
 type syncLocalData = {
@@ -20,7 +20,7 @@ type syncLocalData = {
  *
  * @param {requestMethod} method - The request method, either "GET" or "PUT".
  * @param {putData} [data] - The data to send with the request, only required for "PUT" requests.
- * @returns {Promise<"ok" | user>} - A promise that resolves to either "ok" for successful "PUT" requests or a user object for successful "GET" requests.
+ * @returns {Promise<string | user>} - A promise that resolves to either string for successful "PUT" requests or a user object for successful "GET" requests.
  *
  * @example
  * // GET request
@@ -29,35 +29,35 @@ type syncLocalData = {
  * });
  *
  * @example
- * // PUT request with data1
- * const data: data1 = { linkStorage: LINK_STORAGE };
+ * // PUT request with putLinks
+ * const data: putLinks = { linkStorage: LINK_STORAGE };
  * accountDbRequest("PUT", data).then((response) => {
- *   console.log(response); // "ok"
+ *   console.log(response); // string
  * });
  *
  * @example
- * // PUT request with data2
- * const data: data2 = { groupStorage: ["filter1", "filter2"] };
+ * // PUT request with putGroups
+ * const data: putGroups = { groupStorage: ["filter1", "filter2"] };
  * accountDbRequest("PUT", data).then((response) => {
- *   console.log(response); // "ok"
+ *   console.log(response); // string
  * });
  *
  * @example
  * // PUT request with syncLocalData
  * const data: syncLocalData = { linkStorage: LINK_STORAGE, groupStorage: ["filter1", "filter2"] };
  * accountDbRequest("PUT", data).then((response) => {
- *   console.log(response); // "ok"
+ *   console.log(response); // string
  * });
  */
 export function accountDbRequest(method: "GET"): Promise<user>;
 
-export function accountDbRequest(method: "PUT", data: putData): Promise<"ok">;
+export function accountDbRequest(method: "PUT", data: putData): Promise<string>;
 
 export function accountDbRequest(
   method: requestMethod,
   data?: putData
-): Promise<"ok" | user> {
-  return new Promise((resolve: (value: user | "ok") => void, reject) => {
+): Promise<string | user> {
+  return new Promise((resolve: (value: user | string) => void, reject) => {
     try {
       if (main.dataset.display !== "synchronized") {
         reject("App version is not synchronized, db request rejected");
@@ -65,7 +65,7 @@ export function accountDbRequest(
       }
       const sideBar = document.querySelector("aside");
       if (!sideBar) {
-        reject(new Error("Aside element not found"));
+        reject(new Error("!HTML Error - Aside element not found!"));
         return;
       }
 
@@ -87,24 +87,24 @@ export function accountDbRequest(
               const userData = JSON.parse(xhr.response) as user;
               resolve(userData);
             } catch {
-              reject(new Error("Invalid JSON response"));
+              reject(new Error("!GET request error - Invalid JSON response"));
             }
-          else reject(new Error(`HTTP error ${status}`));
+          else reject(new Error(`!GET request error code - ${status}`));
         } else {
-          resolve("ok");
+          resolve("PUT request completed successfully");
         }
       };
       xhr.onerror = () => {
-        reject(new Error("XHR error"));
+        reject(new Error("!!!Request ERROR!!!"));
       };
       xhr.ontimeout = () => {
-        reject(new Error("Request ran out of time"));
+        reject(new Error("!Request error - TIMED OUT!"));
       };
 
       if (data) xhr.send(JSON.stringify(data));
       else xhr.send();
-    } catch (error) {
-      reject(error);
+    } catch (error: any) {
+      reject(error.message);
     }
   });
 }

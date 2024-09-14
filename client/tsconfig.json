@@ -11,7 +11,13 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "skipLibCheck": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "outDir": "./js"
   },
-  "include": ["./client"]
+  "files": [
+    "./ts/connect-db.ts",
+    "./ts/Editor.ts",
+    "./ts/main.ts",
+    "./ts/SidebarFunctions.ts"
+  ]
 }

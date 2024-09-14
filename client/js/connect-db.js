@@ -8,7 +8,7 @@ export function accountDbRequest(method, data) {
             }
             const sideBar = document.querySelector("aside");
             if (!sideBar) {
-                reject(new Error("Aside element not found"));
+                reject(new Error("!HTML Error - Aside element not found!"));
                 return;
             }
             const xhr = new XMLHttpRequest();
@@ -28,20 +28,20 @@ export function accountDbRequest(method, data) {
                             resolve(userData);
                         }
                         catch (_a) {
-                            reject(new Error("Invalid JSON response"));
+                            reject(new Error("!GET request error - Invalid JSON response"));
                         }
                     else
-                        reject(new Error(`HTTP error ${status}`));
+                        reject(new Error(`!GET request error code - ${status}`));
                 }
                 else {
-                    resolve("ok");
+                    resolve("PUT request completed successfully");
                 }
             };
             xhr.onerror = () => {
-                reject(new Error("XHR error"));
+                reject(new Error("!!!Request ERROR!!!"));
             };
             xhr.ontimeout = () => {
-                reject(new Error("Request ran out of time"));
+                reject(new Error("!Request error - TIMED OUT!"));
             };
             if (data)
                 xhr.send(JSON.stringify(data));
@@ -49,7 +49,7 @@ export function accountDbRequest(method, data) {
                 xhr.send();
         }
         catch (error) {
-            reject(error);
+            reject(error.message);
         }
     });
 }

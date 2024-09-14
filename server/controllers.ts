@@ -142,12 +142,12 @@ export async function getAccountDb(req: any, res: any) {
       process.env.JWT_SECRET!
     );
     if (!decoded || (decoded as any).userId !== req.params.user) {
-      throw new Error("Account not verified USER");
+      throw new Error("!ERROR! - User doesn't match JWT");
     }
     const userId = req.params.user as string;
     const userInDB = await USER_SCHEMA.findById(userId);
     if (!userInDB) {
-      throw new Error("NO USER");
+      throw new Error("!ERROR! - USER not found");
     }
     res.status(200).json({
       linkStorage: userInDB.linkStorage,
@@ -164,13 +164,13 @@ export async function updateAccountDb(req: any, res: any) {
       process.env.JWT_SECRET!
     );
     if (!decoded || (decoded as any).userId !== req.params.user) {
-      res.status(400).send("unreliable USER");
+      res.status(400).send("!ERROR! - no JWT for USER");
       return;
     }
     const userId = req.params.user as string;
     const userInDB = await USER_SCHEMA.findById(userId);
     if (!userInDB) {
-      res.status(400).send("No user in db");
+      res.status(400).send("!ERROR! - No such user in db");
       return;
     }
     const sentData = req.body;

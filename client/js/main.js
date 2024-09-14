@@ -53,11 +53,9 @@ accountDbRequest("GET")
         DATA_STORAGE.setItem(data, JSON.stringify(user[data]));
     }
 }, () => {
-    console.log("Server rejected giving data for render");
+    console.warn("Server rejected giving data for render");
 })
-    .catch((error) => {
-    console.log("!!!ERROR!!! - " + error);
-})
+    .catch(console.error)
     .finally(() => {
     linkEditor.prepareGroupDatalist();
     sidebar.displayAllGroups();
