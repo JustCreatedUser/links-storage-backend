@@ -15,7 +15,7 @@ export function accountDbRequest(method, data) {
             xhr.timeout = 5000;
             const url = sideBar.children[5].href + "/db";
             xhr.open(method, url);
-            if (method === "PUT")
+            if (method !== "GET")
                 xhr.setRequestHeader("Content-Type", "application/json");
             xhr.onload = () => {
                 if (method == "GET") {
@@ -34,7 +34,7 @@ export function accountDbRequest(method, data) {
                         reject(new Error(`!GET request error code - ${status}`));
                 }
                 else {
-                    resolve("PUT request completed successfully");
+                    resolve(method + " request completed successfully");
                 }
             };
             xhr.onerror = () => {

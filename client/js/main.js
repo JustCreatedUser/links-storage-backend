@@ -36,7 +36,7 @@ accountDbRequest("GET")
                 }
                 if (!groups.length)
                     return groups;
-                accountDbRequest("PUT", { groupStorage: groups })
+                accountDbRequest("PUT", { type: "groupS", currentItem: groups })
                     .then(() => { }, (reason) => {
                     console.log(reason);
                 })

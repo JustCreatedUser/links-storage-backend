@@ -7,7 +7,13 @@ import {
   fieldset,
   prepareSearchInput,
 } from "./main.js";
-import { accountDbRequest } from "./connect-db.js";
+import {
+  accountDbRequest,
+  deleteData,
+  patchData,
+  postData,
+  requestMethod,
+} from "./connect-db.js";
 import { sidebar } from "./SidebarFunctions.js";
 interface editorInputs {
   [key: string]: HTMLInputElement | HTMLTextAreaElement;
@@ -64,6 +70,7 @@ class GroupEditor extends Editor {
     this.inputs.name.value = "";
   }
   edit() {
+    //! Here it CREATES a new group
     if (
       !this.inputs.name.value &&
       groupStorage.includes(this.inputs.name.value)
@@ -72,7 +79,7 @@ class GroupEditor extends Editor {
     const newGroup = this.inputs.name.value;
     groupStorage.push(newGroup);
     DATA_STORAGE.setItem("groupStorage", JSON.stringify(groupStorage));
-    accountDbRequest("PUT", { groupStorage })
+    accountDbRequest("POST", { type: "group", currentItem: newGroup })
       .then(console.log, console.warn)
       .catch(console.error);
     sidebar.displayAllGroups();
@@ -89,28 +96,47 @@ class LinkEditor extends Editor {
     super({ htmlElement, inputs });
   }
   edit(): void {
-    new Promise((resolve, reject) => {
-      if (!this.verifyAllFields()) {
-        reject("");
+    new Promise(
+      (
+        resolve: (options: [requestMethod, patchData | postData]) => void,
+        reject
+      ) => {
+        if (!this.verifyAllFields()) {
+          reject("");
+        }
+        let saveOptions: patchData | postData;
+        if (this.editItem) {
+          const thisLinkInDb = linkStorage.find(
+            (link) => link.description === this.editItem!.description
+          ) as Link;
+          thisLinkInDb.description = this.inputs.description.value;
+          thisLinkInDb.url = this.inputs.url.value;
+          thisLinkInDb.group = this.inputs.group.value;
+          const link = thisLinkInDb;
+          var saveMethod: requestMethod = "PATCH";
+          saveOptions = {
+            type: "link",
+            currentItem: link,
+            previousTitle: this.editItem!.description,
+          } as patchData;
+        } else {
+          const link: Link = {
+            description: this.inputs.description.value,
+            url: this.inputs.url.value,
+            group: this.inputs.group.value,
+          };
+          var saveMethod: requestMethod = "POST";
+          saveOptions = {
+            type: "link",
+            currentItem: link,
+          } as postData;
+          linkStorage.push(link);
+        }
+        resolve([saveMethod, saveOptions]);
       }
-      if (this.editItem) {
-        const thisLinkInDb = linkStorage.find(
-          (link) => link.description === this.editItem!.description
-        ) as Link;
-        thisLinkInDb.description = this.inputs.description.value;
-        thisLinkInDb.url = this.inputs.url.value;
-        thisLinkInDb.group = this.inputs.group.value;
-      } else
-        linkStorage.push({
-          description: this.inputs.description.value,
-          url: this.inputs.url.value,
-          group: this.inputs.group.value,
-        });
-      resolve("");
-    })
+    )
       .then(
-        () => {
-          this.close();
+        (options) => {
           if (
             this.editItem &&
             this.editItem.description === this.inputs.description.value &&
@@ -122,10 +148,7 @@ class LinkEditor extends Editor {
           }
           DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
           prepareSearchInput();
-          const putLinks = {
-            linkStorage,
-          };
-          accountDbRequest("PUT", putLinks)
+          accountDbRequest(options[0] as any, options[1])
             .then(console.log, console.warn)
             .catch(console.error);
 
@@ -136,6 +159,7 @@ class LinkEditor extends Editor {
             ).innerText,
             "group"
           );
+          this.close();
         },
         () => {
           console.log("reject");
@@ -163,7 +187,7 @@ class LinkEditor extends Editor {
       1
     );
     this.close();
-    this.editItem = null;
+
     showLinksToUser(
       (
         fieldset.querySelector<HTMLInputElement>("input:checked")!
@@ -173,8 +197,12 @@ class LinkEditor extends Editor {
     );
     prepareSearchInput();
     DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
-    const putLinks = { linkStorage };
-    accountDbRequest("PUT", putLinks)
+    const deletedLinkData: deleteData = {
+      currentItem: this.editItem!.description,
+      type: "link",
+    };
+    this.editItem = null;
+    accountDbRequest("DELETE", deletedLinkData)
       .then(console.log, console.warn)
       .catch(console.error);
   }

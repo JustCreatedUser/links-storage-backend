@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import USER_SCHEMA from "./User-model";
 import jsonwebtoken from "jsonwebtoken";
+import { deleteData } from "../client/ts/connect-db";
 type renderedApp = "local" | "synchronized";
 export function authMiddleware(req: any, res: any, next: any) {
   const token = req.cookies.token;
@@ -137,16 +138,13 @@ export function logout(_: any, res: any) {
 }
 export async function getAccountDb(req: any, res: any) {
   try {
-    const decoded = jsonwebtoken.verify(
-      req.cookies.token,
-      process.env.JWT_SECRET!
-    );
-    if (!decoded || (decoded as any).userId !== req.params.user) {
-      throw new Error("!ERROR! - User doesn't match JWT");
-    }
     const userId = req.params.user as string;
     const userInDB = await USER_SCHEMA.findById(userId);
+    console.log("Getting data");
+
     if (!userInDB) {
+      console.log("NO USER");
+
       throw new Error("!ERROR! - USER not found");
     }
     res.status(200).json({
@@ -159,14 +157,6 @@ export async function getAccountDb(req: any, res: any) {
 }
 export async function updateAccountDb(req: any, res: any) {
   try {
-    const decoded = jsonwebtoken.verify(
-      req.cookies.token,
-      process.env.JWT_SECRET!
-    );
-    if (!decoded || (decoded as any).userId !== req.params.user) {
-      res.status(400).send("!ERROR! - no JWT for USER");
-      return;
-    }
     const userId = req.params.user as string;
     const userInDB = await USER_SCHEMA.findById(userId);
     if (!userInDB) {
@@ -174,6 +164,14 @@ export async function updateAccountDb(req: any, res: any) {
       return;
     }
     const sentData = req.body;
+    userInDB.linkStorage.find((link) => {
+      if (link.description === sentData.previousLink.description) {
+        for (const data in sentData.currentLink) {
+          link[data] = sentData.currentLink[data];
+        }
+      }
+    });
+
     if (sentData.linkStorage) userInDB.linkStorage = sentData.linkStorage;
 
     if (sentData.groupStorage) userInDB.groupStorage = sentData.groupStorage;
@@ -184,3 +182,70 @@ export async function updateAccountDb(req: any, res: any) {
     console.log(error.message);
   }
 }
+export async function isPersonVerifiedForRequest(
+  req: any,
+  res: any,
+  next: () => void
+) {
+  try {
+    const decoded = jsonwebtoken.verify(
+      req.cookies.token,
+      process.env.JWT_SECRET!
+    );
+    if (!decoded || (decoded as any).userId !== req.params.user) {
+      res.status(400).send("!ERROR! - no JWT for USER");
+      return;
+    }
+    next();
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+export async function createNewData(req: any, res: any) {
+  try {
+    const newData = req.body;
+    if (!newData.type) {
+      res.status(400).send("!ERROR! - no data type specified");
+      return;
+    }
+    if (newData.type === "link") {
+    }
+  } catch {}
+}
+export async function deleteSomethingFromDb(req: any, res: any) {
+  try {
+    const userId = req.params.user as string;
+    const userInDB = await USER_SCHEMA.findById(userId);
+    if (!userInDB) {
+      res.status(400).send("!ERROR! - No such user in db");
+      return;
+    }
+    const dataToDelete: deleteData = req.body;
+    switch (dataToDelete.type) {
+      case "link":
+        const neededLinkIndex = userInDB.linkStorage.findIndex(
+          (link) => link.description === dataToDelete.currentItem
+        );
+        userInDB.linkStorage.splice(neededLinkIndex, 1);
+        break;
+      case "group":
+        const neededGroupIndex = userInDB.groupStorage.findIndex(
+          (group) => group === dataToDelete.currentItem
+        );
+        userInDB.groupStorage.splice(neededGroupIndex, 1);
+        break;
+      default:
+        res.status(400).send("!ERROR! - no such type");
+        return;
+    }
+
+    await userInDB.save();
+    res.status(200).send("saved");
+  } catch (error) {
+    console.error("!DELETE ERROR! " + error.message);
+  }
+}
+// export async function insertReadyData(req:any,res:any){
+//   try{
+
+// }

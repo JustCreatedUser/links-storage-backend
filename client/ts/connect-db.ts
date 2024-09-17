@@ -1,25 +1,34 @@
-import { LINK_STORAGE, main } from "./main.js";
+import { Link, LINK_STORAGE, main } from "./main.js";
 type user = {
   linkStorage: LINK_STORAGE;
   groupStorage: string[];
 };
-type requestMethod = "GET" | "PUT";
-type putData = putLinks | putGroups | syncLocalData;
-type putLinks = {
-  linkStorage: LINK_STORAGE;
+export type requestMethod = "GET" | "POST" | "DELETE" | "PATCH" | "PUT";
+type sendDataType = deleteData | patchData | postData | putData;
+export type deleteData = singleDataType & {
+  currentItem: string;
 };
-type putGroups = {
-  groupStorage: string[];
+type putData = pluralDataType & {
+  currentItem: LINK_STORAGE | string[];
 };
-type syncLocalData = {
-  linkStorage: LINK_STORAGE;
-  groupStorage: string[];
+export type postData = singleDataType & {
+  currentItem: Link | string;
+};
+export type patchData = singleDataType & {
+  previousTitle: string;
+  currentItem: string | Link;
+};
+type singleDataType = {
+  type: "group" | "link";
+};
+type pluralDataType = {
+  type: "groupS" | "linkS";
 };
 /**
  * Makes a request to the account database.
  *
  * @param {requestMethod} method - The request method, either "GET" or "PUT".
- * @param {putData} [data] - The data to send with the request, only required for "PUT" requests.
+ * @param {sendDataType} [data] - The data to send with the request, only required for "PUT" requests.
  * @returns {Promise<string | user>} - A promise that resolves to either string for successful "PUT" requests or a user object for successful "GET" requests.
  *
  * @example
@@ -51,11 +60,26 @@ type syncLocalData = {
  */
 export function accountDbRequest(method: "GET"): Promise<user>;
 
+export function accountDbRequest(
+  method: "PATCH",
+  data: patchData
+): Promise<string>;
+
 export function accountDbRequest(method: "PUT", data: putData): Promise<string>;
 
 export function accountDbRequest(
+  method: "POST",
+  data: postData
+): Promise<string>;
+
+export function accountDbRequest(
+  method: "DELETE",
+  data: deleteData
+): Promise<string>;
+
+export function accountDbRequest(
   method: requestMethod,
-  data?: putData
+  data?: sendDataType
 ): Promise<string | user> {
   return new Promise((resolve: (value: user | string) => void, reject) => {
     try {
@@ -75,7 +99,7 @@ export function accountDbRequest(
       const url = (sideBar.children[5] as HTMLAnchorElement).href + "/db";
       xhr.open(method, url);
 
-      if (method === "PUT")
+      if (method !== "GET")
         xhr.setRequestHeader("Content-Type", "application/json");
 
       xhr.onload = () => {
@@ -91,7 +115,7 @@ export function accountDbRequest(
             }
           else reject(new Error(`!GET request error code - ${status}`));
         } else {
-          resolve("PUT request completed successfully");
+          resolve(method + " request completed successfully");
         }
       };
       xhr.onerror = () => {

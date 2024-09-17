@@ -1,5 +1,5 @@
 import express from "express";
-import router from "./router";
+import router from "./routes/main";
 import connectDB from "./connect-database";
 import cookieParser from "cookie-parser";
 import methodOverride from "method-override";

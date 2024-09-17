@@ -10,9 +10,8 @@ import {
   goToAccountPage,
   deleteUser,
   logout,
-  getAccountDb,
-  updateAccountDb,
-} from "./controllers";
+} from "../controllers";
+import dbRouter from "./db";
 router
   .get("/", authMiddleware, (_, res) => {
     res.redirect("/main-app");
@@ -41,11 +40,10 @@ router
         "On this page you can register a new account and use it wherever you want",
     });
   })
+  .use("/users/:user/db", dbRouter)
   .get("/users/:user", goToAccountPage)
-  .put("/users/:user/db", updateAccountDb)
   .get("/local-app", renderLocalApp)
   .get("/main-app", authMiddleware, renderMainApp)
-  .get("/users/:user/db", getAccountDb)
   .post("/login", signIn)
   .post("/users", createUser)
   .delete("/users/:user", deleteUser)

@@ -1,5 +1,5 @@
 import { DATA_STORAGE, linkStorage, groupStorage, showLinksToUser, fieldset, prepareSearchInput, } from "./main.js";
-import { accountDbRequest } from "./connect-db.js";
+import { accountDbRequest, } from "./connect-db.js";
 import { sidebar } from "./SidebarFunctions.js";
 class Editor {
     constructor({ htmlElement, inputs }) {
@@ -68,13 +68,14 @@ class GroupEditor extends Editor {
         this.inputs.name.value = "";
     }
     edit() {
+        //! Here it CREATES a new group
         if (!this.inputs.name.value &&
             groupStorage.includes(this.inputs.name.value))
             return;
         const newGroup = this.inputs.name.value;
         groupStorage.push(newGroup);
         DATA_STORAGE.setItem("groupStorage", JSON.stringify(groupStorage));
-        accountDbRequest("PUT", { groupStorage })
+        accountDbRequest("POST", { type: "group", currentItem: newGroup })
             .then(console.log, console.warn)
             .catch(console.error);
         sidebar.displayAllGroups();
@@ -103,22 +104,36 @@ class LinkEditor extends Editor {
             if (!this.verifyAllFields()) {
                 reject("");
             }
+            let saveOptions;
             if (this.editItem) {
                 const thisLinkInDb = linkStorage.find((link) => link.description === this.editItem.description);
                 thisLinkInDb.description = this.inputs.description.value;
                 thisLinkInDb.url = this.inputs.url.value;
                 thisLinkInDb.group = this.inputs.group.value;
+                const link = thisLinkInDb;
+                var saveMethod = "PATCH";
+                saveOptions = {
+                    type: "link",
+                    currentItem: link,
+                    previousTitle: this.editItem.description,
+                };
             }
-            else
-                linkStorage.push({
+            else {
+                const link = {
                     description: this.inputs.description.value,
                     url: this.inputs.url.value,
                     group: this.inputs.group.value,
-                });
-            resolve("");
+                };
+                var saveMethod = "POST";
+                saveOptions = {
+                    type: "link",
+                    currentItem: link,
+                };
+                linkStorage.push(link);
+            }
+            resolve([saveMethod, saveOptions]);
         })
-            .then(() => {
-            this.close();
+            .then((options) => {
             if (this.editItem &&
                 this.editItem.description === this.inputs.description.value &&
                 this.editItem.group === this.inputs.group.value &&
@@ -128,14 +143,12 @@ class LinkEditor extends Editor {
             }
             DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
             prepareSearchInput();
-            const putLinks = {
-                linkStorage,
-            };
-            accountDbRequest("PUT", putLinks)
+            accountDbRequest(options[0], options[1])
                 .then(console.log, console.warn)
                 .catch(console.error);
             showLinksToUser(fieldset.querySelector("input:checked")
                 .nextElementSibling.innerText, "group");
+            this.close();
         }, () => {
             console.log("reject");
             alert("Invalid link name, URL or group");
@@ -159,13 +172,16 @@ class LinkEditor extends Editor {
             return right;
         }), 1);
         this.close();
-        this.editItem = null;
         showLinksToUser(fieldset.querySelector("input:checked")
             .nextElementSibling.innerText, "group");
         prepareSearchInput();
         DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
-        const putLinks = { linkStorage };
-        accountDbRequest("PUT", putLinks)
+        const deletedLinkData = {
+            currentItem: this.editItem.description,
+            type: "link",
+        };
+        this.editItem = null;
+        accountDbRequest("DELETE", deletedLinkData)
             .then(console.log, console.warn)
             .catch(console.error);
     }
