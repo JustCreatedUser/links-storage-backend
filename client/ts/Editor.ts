@@ -186,8 +186,15 @@ class LinkEditor extends Editor {
       }),
       1
     );
-    this.close();
-
+    prepareSearchInput();
+    DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
+    const deletedLinkData: deleteData = {
+      currentItem: this.editItem!.description,
+      type: "link",
+    };
+    accountDbRequest("DELETE", deletedLinkData)
+      .then(console.log, console.warn)
+      .catch(console.error);
     showLinksToUser(
       (
         fieldset.querySelector<HTMLInputElement>("input:checked")!
@@ -195,16 +202,7 @@ class LinkEditor extends Editor {
       ).innerText,
       "group"
     );
-    prepareSearchInput();
-    DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
-    const deletedLinkData: deleteData = {
-      currentItem: this.editItem!.description,
-      type: "link",
-    };
-    this.editItem = null;
-    accountDbRequest("DELETE", deletedLinkData)
-      .then(console.log, console.warn)
-      .catch(console.error);
+    this.close();
   }
   verifyUrl() {
     if (!this.editItem) return;

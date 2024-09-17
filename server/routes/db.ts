@@ -10,10 +10,11 @@ import {
 } from "../controllers";
 const dbRouter = express.Router();
 function insertReadyData() {}
+const route = "/users/:user/db";
 dbRouter
-  .get("/", getAccountDb)
-  .post("/", isPersonVerifiedForRequest, createNewData)
-  .put("/", isPersonVerifiedForRequest, insertReadyData)
-  .patch("/", isPersonVerifiedForRequest, updateAccountDb)
-  .delete("/", isPersonVerifiedForRequest, deleteSomethingFromDb);
+  .get("/users/:user/db", getAccountDb)
+  .post("/users/:user/db", isPersonVerifiedForRequest, createNewData)
+  .put("/users/:user/db", isPersonVerifiedForRequest, insertReadyData)
+  .patch("/users/:user/db", isPersonVerifiedForRequest, updateAccountDb)
+  .delete("/users/:user/db", isPersonVerifiedForRequest, deleteSomethingFromDb);
 export default dbRouter;

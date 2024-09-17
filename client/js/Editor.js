@@ -171,19 +171,18 @@ class LinkEditor extends Editor {
             }
             return right;
         }), 1);
-        this.close();
-        showLinksToUser(fieldset.querySelector("input:checked")
-            .nextElementSibling.innerText, "group");
         prepareSearchInput();
         DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
         const deletedLinkData = {
             currentItem: this.editItem.description,
             type: "link",
         };
-        this.editItem = null;
         accountDbRequest("DELETE", deletedLinkData)
             .then(console.log, console.warn)
             .catch(console.error);
+        showLinksToUser(fieldset.querySelector("input:checked")
+            .nextElementSibling.innerText, "group");
+        this.close();
     }
     verifyUrl() {
         if (!this.editItem)

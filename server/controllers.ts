@@ -1,7 +1,9 @@
 import bcrypt from "bcrypt";
 import USER_SCHEMA from "./User-model";
 import jsonwebtoken from "jsonwebtoken";
-import { deleteData } from "../client/ts/connect-db";
+import { deleteData, postData, patchData } from "../client/ts/connect-db";
+import { Link } from "../client/ts/main";
+import { deflate } from "zlib";
 type renderedApp = "local" | "synchronized";
 export function authMiddleware(req: any, res: any, next: any) {
   const token = req.cookies.token;
@@ -140,11 +142,7 @@ export async function getAccountDb(req: any, res: any) {
   try {
     const userId = req.params.user as string;
     const userInDB = await USER_SCHEMA.findById(userId);
-    console.log("Getting data");
-
     if (!userInDB) {
-      console.log("NO USER");
-
       throw new Error("!ERROR! - USER not found");
     }
     res.status(200).json({
@@ -163,18 +161,28 @@ export async function updateAccountDb(req: any, res: any) {
       res.status(400).send("!ERROR! - No such user in db");
       return;
     }
-    const sentData = req.body;
-    userInDB.linkStorage.find((link) => {
-      if (link.description === sentData.previousLink.description) {
-        for (const data in sentData.currentLink) {
-          link[data] = sentData.currentLink[data];
+    const sentData: patchData = req.body;
+    switch (sentData.type) {
+      case "link":
+        const linkInDbIndex = userInDB.linkStorage.findIndex(
+          (link) => link.description === sentData.previousTitle
+        );
+        if (linkInDbIndex === -1) {
+          res.status(404).send("!PATCH request ERROR! - link not found");
+          return;
         }
-      }
-    });
-
-    if (sentData.linkStorage) userInDB.linkStorage = sentData.linkStorage;
-
-    if (sentData.groupStorage) userInDB.groupStorage = sentData.groupStorage;
+        userInDB.linkStorage[linkInDbIndex] = sentData.currentItem;
+        break;
+      case "group":
+        const groupInDbIndex = userInDB.groupStorage.findIndex(
+          (group) => group === sentData.previousTitle
+        );
+        userInDB.groupStorage[groupInDbIndex] = sentData.currentItem as string;
+        break;
+      default:
+        res.status(400).send("!ERROR! - invalid type");
+        return;
+    }
 
     await userInDB.save();
     res.status(200).send("saved");
@@ -203,13 +211,33 @@ export async function isPersonVerifiedForRequest(
 }
 export async function createNewData(req: any, res: any) {
   try {
-    const newData = req.body;
+    const newData: postData = req.body;
     if (!newData.type) {
       res.status(400).send("!ERROR! - no data type specified");
       return;
     }
-    if (newData.type === "link") {
+    const userId = req.params.user;
+    const userInDB = await USER_SCHEMA.findById(userId);
+    if (!userInDB) {
+      res.status(400).send("!ERROR! - No such user in db");
+      return;
     }
+    switch (newData.type) {
+      case "link":
+        const newLink = newData.currentItem as Link;
+        userInDB.linkStorage.push(newLink);
+        break;
+
+      case "group":
+        const newGroup = newData.currentItem as string;
+        userInDB.groupStorage.push(newGroup);
+        break;
+      default:
+        res.status(400).send("!ERROR! - unsupported data type");
+        return;
+    }
+    await userInDB.save();
+    res.status(200).send("saved");
   } catch {}
 }
 export async function deleteSomethingFromDb(req: any, res: any) {

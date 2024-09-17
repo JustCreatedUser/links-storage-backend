@@ -40,7 +40,7 @@ router
         "On this page you can register a new account and use it wherever you want",
     });
   })
-  .use("/users/:user/db", dbRouter)
+  .use(dbRouter)
   .get("/users/:user", goToAccountPage)
   .get("/local-app", renderLocalApp)
   .get("/main-app", authMiddleware, renderMainApp)
