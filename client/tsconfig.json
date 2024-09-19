@@ -14,10 +14,5 @@
     "sourceMap": true,
     "outDir": "./js"
   },
-  "files": [
-    "./ts/connect-db.ts",
-    "./ts/Editor.ts",
-    "./ts/main.ts",
-    "./ts/SidebarFunctions.ts"
-  ]
+  "include": ["ts"]
 }

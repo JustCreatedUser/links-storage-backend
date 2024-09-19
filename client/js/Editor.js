@@ -1,4 +1,4 @@
-import { DATA_STORAGE, linkStorage, groupStorage, showLinksToUser, fieldset, prepareSearchInput, } from "./main.js";
+import { LOCAL_STORAGE, linkStorage, groupStorage, showLinksToUser, fieldset, prepareSearchInput, } from "./main.js";
 import { accountDbRequest, } from "./connect-db.js";
 import { sidebar } from "./SidebarFunctions.js";
 class Editor {
@@ -74,7 +74,7 @@ class GroupEditor extends Editor {
             return;
         const newGroup = this.inputs.name.value;
         groupStorage.push(newGroup);
-        DATA_STORAGE.setItem("groupStorage", JSON.stringify(groupStorage));
+        LOCAL_STORAGE.setItem("groupStorage", JSON.stringify(groupStorage));
         accountDbRequest("POST", { type: "group", currentItem: newGroup })
             .then(console.log, console.warn)
             .catch(console.error);
@@ -141,7 +141,7 @@ class LinkEditor extends Editor {
                 this.editItem = null;
                 return;
             }
-            DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
+            LOCAL_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
             prepareSearchInput();
             accountDbRequest(options[0], options[1])
                 .then(console.log, console.warn)
@@ -172,7 +172,7 @@ class LinkEditor extends Editor {
             return right;
         }), 1);
         prepareSearchInput();
-        DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
+        LOCAL_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
         const deletedLinkData = {
             currentItem: this.editItem.description,
             type: "link",

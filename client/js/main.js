@@ -3,7 +3,7 @@ import * as editors from "./Editor.js";
 import { sidebar } from "./SidebarFunctions.js";
 const { groupEditor, linkEditor } = editors;
 export const main = document.querySelector("main");
-export const DATA_STORAGE = (() => {
+export const LOCAL_STORAGE = (() => {
     if (main.dataset.display == "local") {
         return window.localStorage;
     }
@@ -11,10 +11,10 @@ export const DATA_STORAGE = (() => {
         return window.sessionStorage;
     }
 })();
-if (!DATA_STORAGE) {
+if (!LOCAL_STORAGE) {
     alert("The internet connection is worthless or your browser is too old. Update it or use a different one.");
 }
-export let linkStorage = JSON.parse(DATA_STORAGE["linkStorage"] || "[]"), groupStorage = JSON.parse(DATA_STORAGE["groupStorage"] || "[]");
+export let linkStorage = JSON.parse(LOCAL_STORAGE["linkStorage"] || "[]"), groupStorage = JSON.parse(LOCAL_STORAGE["groupStorage"] || "[]");
 accountDbRequest("GET")
     .then((user) => {
     let data;
@@ -45,12 +45,12 @@ accountDbRequest("GET")
                 });
                 return groups;
             })();
-            DATA_STORAGE.setItem("groupStorage", JSON.stringify(groups));
+            LOCAL_STORAGE.setItem("groupStorage", JSON.stringify(groups));
             return groups;
         }
     })();
     for (data in user) {
-        DATA_STORAGE.setItem(data, JSON.stringify(user[data]));
+        LOCAL_STORAGE.setItem(data, JSON.stringify(user[data]));
     }
 }, () => {
     console.warn("Server rejected giving data for render");
@@ -91,6 +91,7 @@ export function showLinksToUser(group, elementToShow) {
         main.appendChild(linkElement);
     });
 }
+//! implemented
 function filterLinksByGroup(group) {
     return linkStorage.filter((item) => {
         return group === "All" ? true : item.group === group;
@@ -119,7 +120,7 @@ function configureGroupNameInput(situation, span) {
                     return span;
                 })());
                 groupStorage.push(groupInput.value);
-                DATA_STORAGE.setItem("groupStorage", JSON.stringify(groupStorage));
+                LOCAL_STORAGE.setItem("groupStorage", JSON.stringify(groupStorage));
                 linkEditor.prepareGroupDatalist();
                 groupInput.remove();
             });
@@ -144,8 +145,8 @@ function configureGroupNameInput(situation, span) {
                     .forEach((oldLink) => {
                     oldLink.group = linkEditor.inputs.group.value;
                 });
-                DATA_STORAGE.setItem("groupStorage", JSON.stringify(groupStorage));
-                DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
+                LOCAL_STORAGE.setItem("groupStorage", JSON.stringify(groupStorage));
+                LOCAL_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
                 main
                     .querySelectorAll(`a[data-group="${span.innerText}"]`)
                     .forEach((anchor) => {
@@ -192,12 +193,12 @@ fieldset.addEventListener("click", function (event) {
             //           ),
             //           1
             //         );
-            //         DATA_STORAGE.setItem(
+            //         LOCAL_STORAGE.setItem(
             //           "groupStorage",
             //           JSON.stringify(groupStorage)
             //         );
             //         event.target.parentElement.remove();
-            //         DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
+            //         LOCAL_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
             //         linkEditor.prepareGroupDatalist();
             //       })()
             //     : "";

@@ -1,5 +1,5 @@
 import {
-  DATA_STORAGE,
+  LOCAL_STORAGE,
   Link,
   linkStorage,
   groupStorage,
@@ -78,7 +78,7 @@ class GroupEditor extends Editor {
       return;
     const newGroup = this.inputs.name.value;
     groupStorage.push(newGroup);
-    DATA_STORAGE.setItem("groupStorage", JSON.stringify(groupStorage));
+    LOCAL_STORAGE.setItem("groupStorage", JSON.stringify(groupStorage));
     accountDbRequest("POST", { type: "group", currentItem: newGroup })
       .then(console.log, console.warn)
       .catch(console.error);
@@ -146,7 +146,7 @@ class LinkEditor extends Editor {
             this.editItem = null;
             return;
           }
-          DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
+          LOCAL_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
           prepareSearchInput();
           accountDbRequest(options[0] as any, options[1])
             .then(console.log, console.warn)
@@ -187,7 +187,7 @@ class LinkEditor extends Editor {
       1
     );
     prepareSearchInput();
-    DATA_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
+    LOCAL_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
     const deletedLinkData: deleteData = {
       currentItem: this.editItem!.description,
       type: "link",
