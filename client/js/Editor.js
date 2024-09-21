@@ -1,4 +1,5 @@
-import { LOCAL_STORAGE, linkStorage, groupStorage, showLinksToUser, fieldset, prepareSearchInput, } from "./main.js";
+import { dataStorage, showLinksToUser, fieldset, prepareSearchInput, LOCAL_STORAGE, } from "./main.js";
+import { Link } from "./storage-data.js";
 import { accountDbRequest, } from "./connect-db.js";
 import { sidebar } from "./SidebarFunctions.js";
 class Editor {
@@ -70,17 +71,22 @@ class GroupEditor extends Editor {
     edit() {
         //! Here it CREATES a new group
         if (!this.inputs.name.value &&
-            groupStorage.includes(this.inputs.name.value))
+            dataStorage.groups.includes(this.inputs.name.value))
             return;
         const newGroup = this.inputs.name.value;
-        groupStorage.push(newGroup);
-        LOCAL_STORAGE.setItem("groupStorage", JSON.stringify(groupStorage));
-        accountDbRequest("POST", { type: "group", currentItem: newGroup })
-            .then(console.log, console.warn)
-            .catch(console.error);
-        sidebar.displayAllGroups();
-        linkEditor.prepareGroupDatalist();
-        this.close();
+        try {
+            dataStorage.groups.safeAdd(newGroup);
+            LOCAL_STORAGE.setItem("groupStorage", JSON.stringify(dataStorage.groups));
+            accountDbRequest("POST", { type: "group", currentItem: newGroup })
+                .then(console.log, console.warn)
+                .catch(console.error);
+            sidebar.displayAllGroups();
+            linkEditor.prepareGroupDatalist();
+            this.close();
+        }
+        catch (_a) {
+            alert("Error adding new group");
+        }
     }
 }
 class LinkEditor extends Editor {
@@ -106,30 +112,32 @@ class LinkEditor extends Editor {
             }
             let saveOptions;
             if (this.editItem) {
-                const thisLinkInDb = linkStorage.find((link) => link.description === this.editItem.description);
-                thisLinkInDb.description = this.inputs.description.value;
-                thisLinkInDb.url = this.inputs.url.value;
-                thisLinkInDb.group = this.inputs.group.value;
-                const link = thisLinkInDb;
+                const thisLinkInDb = dataStorage.links.find((link) => link.d === this.editItem.description);
+                if (!thisLinkInDb) {
+                    reject("Link not found in database");
+                    return;
+                }
+                thisLinkInDb.edit({
+                    d: this.inputs.description.value,
+                    u: this.inputs.url.value,
+                    g: this.inputs.group.value,
+                });
                 var saveMethod = "PATCH";
                 saveOptions = {
                     type: "link",
-                    currentItem: link,
+                    currentItem: thisLinkInDb.toObject(),
                     previousTitle: this.editItem.description,
                 };
             }
             else {
-                const link = {
-                    description: this.inputs.description.value,
-                    url: this.inputs.url.value,
-                    group: this.inputs.group.value,
-                };
+                const description = this.inputs.description.value, url = this.inputs.url.value, group = this.inputs.group.value;
+                const link = new Link(description, url, group);
                 var saveMethod = "POST";
                 saveOptions = {
                     type: "link",
-                    currentItem: link,
+                    currentItem: link.toObject(),
                 };
-                linkStorage.push(link);
+                dataStorage.links.safeAdd(link);
             }
             resolve([saveMethod, saveOptions]);
         })
@@ -141,7 +149,7 @@ class LinkEditor extends Editor {
                 this.editItem = null;
                 return;
             }
-            LOCAL_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
+            LOCAL_STORAGE.setItem("linkStorage", JSON.stringify(dataStorage.links));
             prepareSearchInput();
             accountDbRequest(options[0], options[1])
                 .then(console.log, console.warn)
@@ -160,19 +168,9 @@ class LinkEditor extends Editor {
     delete() {
         if (!confirm("Are you sure about deleting this link?"))
             return;
-        linkStorage.splice(linkStorage.findIndex((link) => {
-            let right = true;
-            let data;
-            for (data in link) {
-                if (!(link[data] === this.inputs[data].value)) {
-                    right = false;
-                    break;
-                }
-            }
-            return right;
-        }), 1);
+        dataStorage.links.findByDescriptionAndDelete(this.editItem.description);
         prepareSearchInput();
-        LOCAL_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
+        LOCAL_STORAGE.setItem("linkStorage", JSON.stringify(dataStorage.links));
         const deletedLinkData = {
             currentItem: this.editItem.description,
             type: "link",
@@ -203,7 +201,7 @@ class LinkEditor extends Editor {
             return;
         }
         else if (!(this.editItem.description === this.inputs.description.value) &&
-            linkStorage.some((link) => link.description === this.inputs.description.value)) {
+            dataStorage.links.some((link) => link.d === this.inputs.description.value)) {
             alert("Link name already exists");
             this.inputs.description.value = this.editItem.description;
             return;
@@ -212,7 +210,7 @@ class LinkEditor extends Editor {
     verifyFilterGroup() {
         if (!this.editItem)
             return;
-        if (![...groupStorage, "Ungrouped"].includes(this.inputs.group.value)) {
+        if (![...dataStorage.groups, "Ungrouped"].includes(this.inputs.group.value)) {
             this.inputs.group.value = this.editItem.group;
             alert("This group doesn't exist");
             return;
@@ -224,14 +222,14 @@ class LinkEditor extends Editor {
                 ? !(linkEditor.inputs.description.value ===
                     linkEditor.editItem.description)
                 : true) &&
-                linkStorage.some((link) => link.description === linkEditor.inputs.description.value)), isLinkURLNotValid = !linkEditor.inputs.url.value ||
+                dataStorage.links.some((link) => link.d === linkEditor.inputs.description.value)), isLinkURLNotValid = !linkEditor.inputs.url.value ||
             !/https?:\/\//g.test(linkEditor.inputs.url.value), isLinkGroupNotValid = !linkEditor.inputs.group.value ||
-            ![...groupStorage, "Ungrouped"].includes(linkEditor.inputs.group.value);
+            ![...dataStorage.groups, "Ungrouped"].includes(linkEditor.inputs.group.value);
         return !(isLinkNameNotValid || isLinkURLNotValid || isLinkGroupNotValid);
     }
     prepareGroupDatalist() {
         linkEditor.groupDatalist.innerHTML = "";
-        const allMeaningfulGroups = [...groupStorage, "Ungrouped"];
+        const allMeaningfulGroups = [...dataStorage.groups, "Ungrouped"];
         linkEditor.groupDatalist.append(...allMeaningfulGroups.reduce((groups, group) => {
             const option = document.createElement("option");
             option.value = group;
@@ -243,7 +241,7 @@ class LinkEditor extends Editor {
     prepareFieldsForEditing(event) {
         if (event.target.tagName !== "BUTTON")
             return;
-        this.editItem = Object.assign({}, linkStorage.find((link) => link.description ===
+        this.editItem = Object.assign({}, dataStorage.links.find((link) => link.d ===
             event.target
                 .previousElementSibling.innerText));
         this.inputs.description.value = this.editItem.description;

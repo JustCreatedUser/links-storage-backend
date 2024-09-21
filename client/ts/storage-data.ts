@@ -1,3 +1,4 @@
+import { dataStorage } from "./main.js";
 export interface LinkI {
   d: string;
   u: string;
@@ -13,7 +14,7 @@ export interface LinkEdits {
   u?: string;
   g?: string;
 }
-import dataStorage from "./storages.js";
+
 export class Link implements LinkI {
   private description: string = "Unedited link";
   private url: string = "https://";
@@ -51,8 +52,8 @@ export class Link implements LinkI {
       link.d &&
       link.u &&
       link.g &&
-      !/https?:\/\//g.test(link.u) &&
-      (dataStorage.groups.includes(link.g) || link.g === "Ungrouped")
+      /https?:\/\//g.test(link.u) //&&
+      //(LOCAL_STORAGE.groups.includes(link.g) || link.g === "Ungrouped")
     )
       return true;
     return false;
@@ -65,10 +66,11 @@ export class Link implements LinkI {
       (this as any)[key] = changes[key];
     }
   }
-}
-try {
-  dataStorage.links.safeAdd(new Link("d", "http://", "Ungrouped"));
-  console.log(dataStorage.links);
-} catch (error: any) {
-  console.log(dataStorage.links, error.message);
+  toObject(): LinkInDatabase {
+    return {
+      description: this.description,
+      url: this.url,
+      group: this.group,
+    };
+  }
 }

@@ -1,4 +1,5 @@
-import { Link, LINK_STORAGE, main } from "./main.js";
+import { LINK_STORAGE, main } from "./main.js";
+import { LinkInDatabase } from "./storage-data.js";
 type user = {
   linkStorage: LINK_STORAGE;
   groupStorage: string[];
@@ -12,11 +13,11 @@ type putData = pluralDataType & {
   currentItem: LINK_STORAGE | string[];
 };
 export type postData = singleDataType & {
-  currentItem: Link | string;
+  currentItem: LinkInDatabase | string;
 };
 export type patchData = singleDataType & {
   previousTitle: string;
-  currentItem: string | Link;
+  currentItem: string | LinkInDatabase;
 };
 type singleDataType = {
   type: "group" | "link";
@@ -92,41 +93,28 @@ export function accountDbRequest(
         reject(new Error("!HTML Error - Aside element not found!"));
         return;
       }
-
-      const xhr = new XMLHttpRequest();
-      xhr.timeout = 5000;
-
+      const headers = {
+        "Content-Type": "application/json",
+      };
       const url = (sideBar.children[5] as HTMLAnchorElement).href + "/db";
-      xhr.open(method, url);
-
-      if (method !== "GET")
-        xhr.setRequestHeader("Content-Type", "application/json");
-
-      xhr.onload = () => {
+      const options = {
+        method,
+        headers,
+        body: JSON.stringify(data),
+      };
+      const request = new Request(url, options);
+      fetch(request).then((response) => {
+        if (!response.ok) reject(new Error(`!Request error!`));
         if (method == "GET") {
-          const status = xhr.status;
-          if (xhr.readyState !== XMLHttpRequest.DONE) return;
-          if (status === 0 || (status >= 200 && status < 400))
-            try {
-              const userData = JSON.parse(xhr.response) as user;
-              resolve(userData);
-            } catch {
-              reject(new Error("!GET request error - Invalid JSON response"));
-            }
-          else reject(new Error(`!GET request error code - ${status}`));
+          try {
+            response.json().then(resolve).catch(console.error);
+          } catch {
+            reject(new Error("!GET request error - Invalid JSON response"));
+          }
         } else {
           resolve(method + " request completed successfully");
         }
-      };
-      xhr.onerror = () => {
-        reject(new Error("!!!Request ERROR!!!"));
-      };
-      xhr.ontimeout = () => {
-        reject(new Error("!Request error - TIMED OUT!"));
-      };
-
-      if (data) xhr.send(JSON.stringify(data));
-      else xhr.send();
+      });
     } catch (error: any) {
       reject(error.message);
     }

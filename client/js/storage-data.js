@@ -1,4 +1,4 @@
-import dataStorage from "./storages.js";
+import { dataStorage } from "./main.js";
 export class Link {
     constructor(description, url, group) {
         Object.defineProperty(this, "description", {
@@ -52,8 +52,9 @@ export class Link {
         if (link.d &&
             link.u &&
             link.g &&
-            !/https?:\/\//g.test(link.u) &&
-            (dataStorage.groups.includes(link.g) || link.g === "Ungrouped"))
+            /https?:\/\//g.test(link.u) //&&
+        //(LOCAL_STORAGE.groups.includes(link.g) || link.g === "Ungrouped")
+        )
             return true;
         return false;
     }
@@ -65,12 +66,12 @@ export class Link {
             this[key] = changes[key];
         }
     }
-}
-try {
-    dataStorage.links.safeAdd(new Link("d", "http://", "Ungrouped"));
-    console.log(dataStorage.links);
-}
-catch (error) {
-    console.log(dataStorage.links, error.message);
+    toObject() {
+        return {
+            description: this.description,
+            url: this.url,
+            group: this.group,
+        };
+    }
 }
 //# sourceMappingURL=storage-data.js.map

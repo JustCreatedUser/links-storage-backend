@@ -2,8 +2,7 @@ import bcrypt from "bcrypt";
 import USER_SCHEMA from "./User-model";
 import jsonwebtoken from "jsonwebtoken";
 import { deleteData, postData, patchData } from "../client/ts/connect-db";
-import { Link } from "../client/ts/main";
-import { deflate } from "zlib";
+import { LinkInDatabase } from "../client/ts/storage-data";
 type renderedApp = "local" | "synchronized";
 export function authMiddleware(req: any, res: any, next: any) {
   const token = req.cookies.token;
@@ -224,7 +223,7 @@ export async function createNewData(req: any, res: any) {
     }
     switch (newData.type) {
       case "link":
-        const newLink = newData.currentItem as Link;
+        const newLink = newData.currentItem as LinkInDatabase;
         userInDB.linkStorage.push(newLink);
         break;
 

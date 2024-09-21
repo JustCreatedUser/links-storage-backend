@@ -10,59 +10,27 @@ export const LOCAL_STORAGE: Storage = (() => {
     return window.sessionStorage;
   }
 })();
+import DataStorage from "./storages.js";
+import { Link, LinkInDatabase } from "./storage-data.js";
+
 if (!LOCAL_STORAGE) {
   alert(
     "The internet connection is worthless or your browser is too old. Update it or use a different one."
   );
 }
-
-export let linkStorage: LINK_STORAGE = JSON.parse(
-    LOCAL_STORAGE["linkStorage"] || "[]"
-  ),
-  groupStorage: string[] = JSON.parse(LOCAL_STORAGE["groupStorage"] || "[]");
+export const dataStorage = new DataStorage();
+dataStorage.groups = JSON.parse(LOCAL_STORAGE.groupStorage || "[]");
+dataStorage.links = JSON.parse(LOCAL_STORAGE.linkStorage || "[]");
 accountDbRequest("GET")
   .then(
     (user) => {
+      try {
+        dataStorage.groups = user.groupStorage;
+        dataStorage.links = user.linkStorage;
+      } catch (error) {
+        console.error(error);
+      }
       let data: keyof typeof user;
-      linkStorage = user["linkStorage"];
-      groupStorage = (() => {
-        try {
-          if (user["groupStorage"].length === 0)
-            throw new Error("groups are empty");
-          return user["groupStorage"];
-        } catch {
-          const groups = (() => {
-            const groups = Array.from(
-              new Set(
-                linkStorage.reduce((allGroups: string[], link) => {
-                  allGroups.push(link.group);
-                  return allGroups;
-                }, [])
-              )
-            );
-            if (groups.includes("Ungrouped")) {
-              groups.splice(
-                groups.findIndex((group: string) => group === "Ungrouped"),
-                1
-              );
-            }
-            if (!groups.length) return groups;
-            accountDbRequest("PUT", { type: "groupS", currentItem: groups })
-              .then(
-                () => {},
-                (reason) => {
-                  console.log(reason);
-                }
-              )
-              .catch((error) => {
-                console.error(error.message);
-              });
-            return groups;
-          })();
-          LOCAL_STORAGE.setItem("groupStorage", JSON.stringify(groups));
-          return groups;
-        }
-      })();
       for (data in user) {
         LOCAL_STORAGE.setItem(data, JSON.stringify(user[data]));
       }
@@ -78,14 +46,10 @@ accountDbRequest("GET")
     prepareSearchInput();
     showLinksToUser("All", "group");
   });
+
 export const fieldset = document.querySelector("fieldset") as HTMLElement,
   searchButton = document.getElementById("search-button") as HTMLElement;
-export interface Link {
-  description: string;
-  url: string;
-  group: string;
-}
-export type LINK_STORAGE = Array<Link>;
+export type LINK_STORAGE = Array<LinkInDatabase>;
 
 export function prepareSearchInput() {
   const datalist = document.getElementById(
@@ -93,27 +57,26 @@ export function prepareSearchInput() {
   ) as HTMLDataListElement;
   datalist.innerHTML = "";
   datalist.append(
-    ...linkStorage.reduce((allLinks: Array<HTMLOptionElement>, link) => {
+    ...dataStorage.links.reduce((allLinks: Array<HTMLOptionElement>, link) => {
       const option = document.createElement("option");
-      option.value = link.description;
+      option.value = link.d;
       allLinks.push(option);
       return allLinks;
     }, [])
   );
 }
 
-export function showLinksToUser(
-  group: string,
-  elementToShow: "group" | LINK_STORAGE
-) {
+export function showLinksToUser(group: string, elementToShow: "group" | Link) {
   main.innerHTML = "";
   linkEditor.editItem = null;
   var filteredArray =
-    elementToShow === "group" ? filterLinksByGroup(group) : elementToShow;
+    elementToShow === "group"
+      ? dataStorage.links.filterByGroup(group)
+      : [elementToShow];
   filteredArray.forEach((link) => {
     const linkElement = document.createElement("div");
     linkElement.innerHTML = /*html*/ `
-      <a href="${link.url}" target="_blank">${link.description}</a>
+      <a href="${link.u}" target="_blank">${link.d}</a>
       `;
     const linkEditorOpen = document.createElement("button");
     linkEditorOpen.addEventListener("click", () => {
@@ -124,13 +87,6 @@ export function showLinksToUser(
     main.appendChild(linkElement);
   });
 }
-//! implemented
-function filterLinksByGroup(group: string) {
-  return linkStorage.filter((item) => {
-    return group === "All" ? true : item.group === group;
-  }) as LINK_STORAGE;
-}
-
 function configureGroupNameInput(
   situation: "rename",
   target: HTMLSpanElement
@@ -153,7 +109,9 @@ function configureGroupNameInput(
           groupInput.parentElement?.remove();
           return;
         }
-        if ([...groupStorage, "Ungrouped", "All"].includes(groupInput.value)) {
+        if (
+          [...dataStorage.groups, "Ungrouped", "All"].includes(groupInput.value)
+        ) {
           alert("This groups already exists");
           groupInput.parentElement?.remove();
           return;
@@ -167,8 +125,11 @@ function configureGroupNameInput(
             return span;
           })()
         );
-        groupStorage.push(groupInput.value);
-        LOCAL_STORAGE.setItem("groupStorage", JSON.stringify(groupStorage));
+        dataStorage.groups.push(groupInput.value);
+        LOCAL_STORAGE.setItem(
+          "groupStorage",
+          JSON.stringify(dataStorage.groups)
+        );
         linkEditor.prepareGroupDatalist();
         groupInput.remove();
       });
@@ -181,7 +142,7 @@ function configureGroupNameInput(
       linkEditor.inputs.group.addEventListener("blur", function (): void {
         if (
           linkEditor.inputs.group.value == "" ||
-          [...groupStorage, "Ungrouped", "All"].includes(
+          [...dataStorage.groups, "Ungrouped", "All"].includes(
             linkEditor.inputs.group.value
           )
         ) {
@@ -190,16 +151,19 @@ function configureGroupNameInput(
           linkEditor.inputs.group.remove();
           return;
         }
-        groupStorage[
-          groupStorage.findIndex((group) => group === span!.innerText)
+        dataStorage.groups[
+          dataStorage.groups.findIndex((group) => group === span!.innerText)
         ] = linkEditor.inputs.group.value;
-        linkStorage
-          .filter((link) => link.group === span!.innerText)
+        dataStorage.links
+          .filter((link) => link.g === span!.innerText)
           .forEach((oldLink) => {
-            oldLink.group = linkEditor.inputs.group.value;
+            oldLink.g = linkEditor.inputs.group.value;
           });
-        LOCAL_STORAGE.setItem("groupStorage", JSON.stringify(groupStorage));
-        LOCAL_STORAGE.setItem("linkStorage", JSON.stringify(linkStorage));
+        LOCAL_STORAGE.setItem(
+          "groupStorage",
+          JSON.stringify(dataStorage.groups)
+        );
+        LOCAL_STORAGE.setItem("linkStorage", JSON.stringify(dataStorage.links));
         main
           .querySelectorAll<HTMLAnchorElement>(
             `a[data-group="${span!.innerText}"]`
@@ -321,18 +285,22 @@ function searchOneLink() {
     );
     return;
   }
-  const searchedLink = linkStorage.find(
+  const searchedLink = dataStorage.links.find(
     (link) =>
-      link.description ===
+      link.d ===
       (document.querySelector('input[type="search"]') as HTMLInputElement).value
   );
   if (searchedLink) {
     (fieldset.querySelector('input[type="radio"]') as HTMLInputElement).click();
-    showLinksToUser(
-      (fieldset.querySelector("input:checked") as HTMLInputElement).dataset
-        .group as string,
-      [searchedLink] as LINK_STORAGE
-    );
+    try {
+      showLinksToUser(
+        (fieldset.querySelector("input:checked") as HTMLInputElement).dataset
+          .group as string,
+        searchedLink
+      );
+    } catch {
+      console.error("Can't show wrong link");
+    }
   } else {
     alert("There is no link you tried to find");
   }

@@ -1,26 +1,26 @@
 import { LOCAL_STORAGE } from "./main.js";
 import { Link } from "./storage-data.js";
 export class DataStorage {
-    constructor({ links, groups, }) {
+    constructor() {
         Object.defineProperty(this, "_links", {
             enumerable: true,
             configurable: true,
             writable: true,
-            value: void 0
+            value: new LinkArray([])
         });
         Object.defineProperty(this, "_groups", {
             enumerable: true,
             configurable: true,
             writable: true,
-            value: void 0
+            value: new GroupArray([])
         });
-        this._links = new LinkArray(links);
-        this._groups = new GroupArray(groups);
     }
     get links() {
         return this._links;
     }
     set links(links) {
+        if (typeof links !== "object")
+            throw new Error("Wrong type of parameter");
         this._links = new LinkArray(links);
     }
     get groups() {
@@ -30,21 +30,25 @@ export class DataStorage {
         this._groups = new GroupArray(groups);
     }
 }
-class LinkArray extends Array {
+export class LinkArray extends Array {
     constructor(MemoryData) {
         super();
-        let isMemoryValid = true;
-        for (const link of MemoryData) {
-            const { description, group, url } = link;
-            try {
-                this.safeAdd(new Link(description, group, url));
-            }
-            catch (_a) {
-                isMemoryValid = false;
-            }
+        if (typeof MemoryData === "object") {
+            let isMemoryValid = true;
+            MemoryData.forEach((link) => {
+                try {
+                    const { description, group, url } = link;
+                    const newLink = new Link(description, url, group);
+                    this.safeAdd(newLink);
+                }
+                catch (error) {
+                    console.log(error);
+                    isMemoryValid = false;
+                }
+            });
+            if (!isMemoryValid)
+                LOCAL_STORAGE.setItem("linkStorage", JSON.stringify(this));
         }
-        if (!isMemoryValid)
-            LOCAL_STORAGE.setItem("linkStorage", JSON.stringify(this));
     }
     safeAdd(newLink) {
         const theSameLink = this.find((link) => link.d === newLink.d);
@@ -53,7 +57,22 @@ class LinkArray extends Array {
         this.push(newLink);
     }
     filterByGroup(group) {
-        return this.filter((link) => (group === "All" ? true : link.g === group));
+        try {
+            if (this.length === 0)
+                return [];
+            return this.reduce((prev, current) => {
+                group === "All"
+                    ? prev.push(current)
+                    : current.g === group
+                        ? prev.push(current)
+                        : "";
+                return prev;
+            }, []);
+        }
+        catch (error) {
+            console.log(error);
+            return [];
+        }
     }
     findAndEdit(prevDescription, changes) {
         const linkInStorage = this.find((link) => link.d === prevDescription);
@@ -61,22 +80,41 @@ class LinkArray extends Array {
             throw new Error("Link not found");
         linkInStorage.edit(changes);
     }
+    getAllGroups() {
+        return [...new Set(this.map((link) => link.g))];
+    }
+    findByDescriptionAndDelete(description) {
+        const linkIndex = this.findIndex((link) => link.d === description);
+        if (linkIndex === -1)
+            throw new Error("Link not found");
+        try {
+            this.splice(linkIndex, 1);
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
 }
-class GroupArray extends Array {
+export class GroupArray extends Array {
     constructor(groups) {
         super();
+        let success = true;
         for (const key of groups) {
             try {
                 this.safeAdd(key);
             }
             catch (_a) {
-                // ignore
+                success = false;
             }
         }
+        if (!success)
+            LOCAL_STORAGE.setItem("groupStorage", JSON.stringify(this));
     }
     safeAdd(value) {
-        if (this.find((group) => group === value))
-            throw new Error("Link already exists");
+        if (this.includes(value) || typeof value !== "string" || !value.trim())
+            throw new Error("There is an error with creating new group");
+        if (value === "Ungrouped")
+            return;
         this.push(value);
     }
     findAndEdit(prevVal, currentVal) {
@@ -86,9 +124,5 @@ class GroupArray extends Array {
         this[index] = currentVal;
     }
 }
-const dataStorage = new DataStorage({
-    links: JSON.parse(LOCAL_STORAGE["linkStorage"] || "[]"),
-    groups: JSON.parse(LOCAL_STORAGE["groupStorage"] || "[]"),
-});
-export default dataStorage;
+export default DataStorage;
 //# sourceMappingURL=storages.js.map

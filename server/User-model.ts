@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Link } from "../client/main";
+import { LinkInDatabase } from "../client/ts/storage-data";
 const UserSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -45,7 +45,7 @@ const UserSchema = new mongoose.Schema({
     type: Array,
     default: [],
     validate: {
-      validator: function (storage: Array<Link>) {
+      validator: function (storage: Array<LinkInDatabase>) {
         if (!storage) return false;
         const uniqueLinks = new Set();
         for (const link of storage) {
