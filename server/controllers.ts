@@ -40,7 +40,7 @@ export async function createUser(req: any, res: any) {
     await newUser.save();
     res.status(200).redirect(`/main-app`);
   } catch (error: any) {
-    console.log("!createUser ERROR! - " + error.message);
+    console.error("!createUser ERROR! - " + error.message);
   }
 }
 export function renderLocalApp(_: any, res: any) {

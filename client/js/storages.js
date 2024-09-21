@@ -1,6 +1,6 @@
 import { LOCAL_STORAGE } from "./main.js";
 import { Link } from "./storage-data.js";
-export class DataStorage {
+class DataStorage {
     constructor() {
         Object.defineProperty(this, "_links", {
             enumerable: true,
@@ -42,7 +42,7 @@ export class LinkArray extends Array {
                     this.safeAdd(newLink);
                 }
                 catch (error) {
-                    console.log(error);
+                    console.error("!Database creating error! - " + error.message);
                     isMemoryValid = false;
                 }
             });
@@ -122,6 +122,12 @@ export class GroupArray extends Array {
             return;
         let index = this.findIndex((group) => group === prevVal);
         this[index] = currentVal;
+    }
+    getAlmostALL() {
+        return [...this, "Ungrouped"];
+    }
+    getALL() {
+        return [...this.getAlmostALL(), "All"];
     }
 }
 export default DataStorage;

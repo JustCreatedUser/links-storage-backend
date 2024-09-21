@@ -61,7 +61,7 @@ export class Link {
     edit(changes) {
         let key;
         for (key in changes) {
-            if (!this.hasOwnProperty(key))
+            if (!this[key])
                 continue;
             this[key] = changes[key];
         }

@@ -243,8 +243,15 @@ a {
   font-size: calc(32px * var(--scale-08-below-650px));
   color: white;
 }
-main div {
+main > * {
   animation: links 0.3s forwards 1;
+}
+.no-links_warning {
+  color: black;
+  font-size: 30px;
+  font-weight: 900;
+}
+main div {
   animation-timing-function: ease-in-out;
   position: relative;
   display: flex;
@@ -274,6 +281,9 @@ main div {
 }
 #dark-theme:checked {
   ~ main {
+    .no-links_warning {
+      color: white;
+    }
     div {
       background-color: black;
       border: 2px solid white;

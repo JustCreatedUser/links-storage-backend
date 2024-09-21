@@ -62,7 +62,7 @@ export class Link implements LinkI {
     type KEYS = "d" | "u" | "g";
     let key: KEYS;
     for (key in changes) {
-      if (!this.hasOwnProperty(key)) continue;
+      if (!this[key]) continue;
       (this as any)[key] = changes[key];
     }
   }

@@ -158,11 +158,11 @@ class LinkEditor extends Editor {
                 .nextElementSibling.innerText, "group");
             this.close();
         }, () => {
-            console.log("reject");
+            console.warn("reject");
             alert("Invalid link name, URL or group");
         })
             .catch((error) => {
-            console.log("!!!" + error.message);
+            console.error("!!!" + error.message);
         });
     }
     delete() {
@@ -210,7 +210,7 @@ class LinkEditor extends Editor {
     verifyFilterGroup() {
         if (!this.editItem)
             return;
-        if (![...dataStorage.groups, "Ungrouped"].includes(this.inputs.group.value)) {
+        if (!dataStorage.groups.getAlmostALL().includes(this.inputs.group.value)) {
             this.inputs.group.value = this.editItem.group;
             alert("This group doesn't exist");
             return;
@@ -224,13 +224,16 @@ class LinkEditor extends Editor {
                 : true) &&
                 dataStorage.links.some((link) => link.d === linkEditor.inputs.description.value)), isLinkURLNotValid = !linkEditor.inputs.url.value ||
             !/https?:\/\//g.test(linkEditor.inputs.url.value), isLinkGroupNotValid = !linkEditor.inputs.group.value ||
-            ![...dataStorage.groups, "Ungrouped"].includes(linkEditor.inputs.group.value);
+            !dataStorage.groups
+                .getAlmostALL()
+                .includes(linkEditor.inputs.group.value);
         return !(isLinkNameNotValid || isLinkURLNotValid || isLinkGroupNotValid);
     }
     prepareGroupDatalist() {
         linkEditor.groupDatalist.innerHTML = "";
-        const allMeaningfulGroups = [...dataStorage.groups, "Ungrouped"];
-        linkEditor.groupDatalist.append(...allMeaningfulGroups.reduce((groups, group) => {
+        linkEditor.groupDatalist.append(...dataStorage.groups
+            .getAlmostALL()
+            .reduce((groups, group) => {
             const option = document.createElement("option");
             option.value = group;
             option.innerText = group;
@@ -264,7 +267,6 @@ export const linkEditor = new LinkEditor({
             group: document.getElementById("groupInput"),
         };
         if (Object.values(object).some((data) => !data)) {
-            console.log(Object.values(object));
             console.error("!LinkEditor html ERROR!");
         }
         return object;
@@ -276,7 +278,6 @@ export const linkEditor = new LinkEditor({
             name: document.getElementById("nameInput"),
         };
         if (Object.values(object).some((data) => !data)) {
-            console.log(Object.values(object));
             console.error("!groupEditor html ERROR!");
         }
         return object;

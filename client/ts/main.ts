@@ -73,115 +73,117 @@ export function showLinksToUser(group: string, elementToShow: "group" | Link) {
     elementToShow === "group"
       ? dataStorage.links.filterByGroup(group)
       : [elementToShow];
-  filteredArray.forEach((link) => {
-    const linkElement = document.createElement("div");
-    linkElement.innerHTML = /*html*/ `
+  if (filteredArray.length === 0) {
+    const warning = document.createElement("p");
+    warning.textContent = `No links found for "${group}"`;
+    warning.className = "no-links_warning";
+    main.appendChild(warning);
+  } else
+    filteredArray.forEach((link) => {
+      const linkElement = document.createElement("div");
+      linkElement.innerHTML = /*html*/ `
       <a href="${link.u}" target="_blank">${link.d}</a>
       `;
-    const linkEditorOpen = document.createElement("button");
-    linkEditorOpen.addEventListener("click", () => {
-      linkEditor.open();
+      const linkEditorOpen = document.createElement("button");
+      linkEditorOpen.addEventListener("click", () => {
+        linkEditor.open();
+      });
+      linkEditorOpen.textContent = "⋮";
+      linkElement.appendChild(linkEditorOpen);
+      main.appendChild(linkElement);
     });
-    linkEditorOpen.textContent = "⋮";
-    linkElement.appendChild(linkEditorOpen);
-    main.appendChild(linkElement);
-  });
 }
-function configureGroupNameInput(
-  situation: "rename",
-  target: HTMLSpanElement
-): void;
-function configureGroupNameInput(
-  situation: "create",
-  target: undefined
-): HTMLInputElement;
-function configureGroupNameInput(
-  situation: "create" | "rename",
-  span: HTMLSpanElement | undefined
-) {
-  const groupInput = document.createElement("input");
-  groupInput.placeholder = "new group";
-  groupInput.type = "text";
-  switch (situation) {
-    case "create":
-      groupInput.addEventListener("blur", function (): void {
-        if (!groupInput.value) {
-          groupInput.parentElement?.remove();
-          return;
-        }
-        if (
-          [...dataStorage.groups, "Ungrouped", "All"].includes(groupInput.value)
-        ) {
-          alert("This groups already exists");
-          groupInput.parentElement?.remove();
-          return;
-        }
-        groupInput.before(
-          (() => {
-            const span = document.createElement("span");
-            (
-              groupInput.previousElementSibling as HTMLSpanElement
-            ).dataset.group = span.innerText = groupInput.value;
-            return span;
-          })()
-        );
-        dataStorage.groups.push(groupInput.value);
-        LOCAL_STORAGE.setItem(
-          "groupStorage",
-          JSON.stringify(dataStorage.groups)
-        );
-        linkEditor.prepareGroupDatalist();
-        groupInput.remove();
-      });
-      return groupInput;
-    case "rename":
-      linkEditor.inputs.group.value = span?.innerText as string;
-      span!.before(linkEditor.inputs.group);
-      linkEditor.inputs.group.focus();
-      span!.style.display = "none";
-      linkEditor.inputs.group.addEventListener("blur", function (): void {
-        if (
-          linkEditor.inputs.group.value == "" ||
-          [...dataStorage.groups, "Ungrouped", "All"].includes(
-            linkEditor.inputs.group.value
-          )
-        ) {
-          alert("Field is empty or name already exists. Unsuitable name");
-          (span as HTMLSpanElement).removeAttribute("style");
-          linkEditor.inputs.group.remove();
-          return;
-        }
-        dataStorage.groups[
-          dataStorage.groups.findIndex((group) => group === span!.innerText)
-        ] = linkEditor.inputs.group.value;
-        dataStorage.links
-          .filter((link) => link.g === span!.innerText)
-          .forEach((oldLink) => {
-            oldLink.g = linkEditor.inputs.group.value;
-          });
-        LOCAL_STORAGE.setItem(
-          "groupStorage",
-          JSON.stringify(dataStorage.groups)
-        );
-        LOCAL_STORAGE.setItem("linkStorage", JSON.stringify(dataStorage.links));
-        main
-          .querySelectorAll<HTMLAnchorElement>(
-            `a[data-group="${span!.innerText}"]`
-          )
-          .forEach((anchor) => {
-            anchor.dataset.group = linkEditor.inputs.group.value;
-          });
-        span!.innerText = linkEditor.inputs.group.value;
-        span!.removeAttribute("style");
-        (span!.parentElement?.firstChild as HTMLInputElement).dataset.group =
-          linkEditor.inputs.group.value;
+// function configureGroupNameInput(
+//   situation: "rename",
+//   target: HTMLSpanElement
+// ): void;
+// function configureGroupNameInput(
+//   situation: "create",
+//   target: undefined
+// ): HTMLInputElement;
+// function configureGroupNameInput(
+//   situation: "create" | "rename",
+//   span: HTMLSpanElement | undefined
+// ) {
+//   const groupInput = document.createElement("input");
+//   groupInput.placeholder = "new group";
+//   groupInput.type = "text";
+//   switch (situation) {
+//     case "create":
+//       groupInput.addEventListener("blur", function (): void {
+//         if (!groupInput.value) {
+//           groupInput.parentElement?.remove();
+//           return;
+//         }
+//         if (dataStorage.groups.getALL().includes(groupInput.value)) {
+//           alert("This groups already exists");
+//           groupInput.parentElement?.remove();
+//           return;
+//         }
+//         groupInput.before(
+//           (() => {
+//             const span = document.createElement("span");
+//             (
+//               groupInput.previousElementSibling as HTMLSpanElement
+//             ).dataset.group = span.innerText = groupInput.value;
+//             return span;
+//           })()
+//         );
+//         dataStorage.groups.push(groupInput.value);
+//         LOCAL_STORAGE.setItem(
+//           "groupStorage",
+//           JSON.stringify(dataStorage.groups)
+//         );
+//         linkEditor.prepareGroupDatalist();
+//         groupInput.remove();
+//       });
+//       return groupInput;
+//     case "rename":
+//       linkEditor.inputs.group.value = span?.innerText as string;
+//       span!.before(linkEditor.inputs.group);
+//       linkEditor.inputs.group.focus();
+//       span!.style.display = "none";
+//       linkEditor.inputs.group.addEventListener("blur", function (): void {
+//         if (
+//           linkEditor.inputs.group.value == "" ||
+//           dataStorage.groups.getALL().includes(linkEditor.inputs.group.value)
+//         ) {
+//           alert("Field is empty or name already exists. Unsuitable name");
+//           (span as HTMLSpanElement).removeAttribute("style");
+//           linkEditor.inputs.group.remove();
+//           return;
+//         }
+//         dataStorage.groups[
+//           dataStorage.groups.findIndex((group) => group === span!.innerText)
+//         ] = linkEditor.inputs.group.value;
+//         dataStorage.links
+//           .filter((link) => link.g === span!.innerText)
+//           .forEach((oldLink) => {
+//             oldLink.g = linkEditor.inputs.group.value;
+//           });
+//         LOCAL_STORAGE.setItem(
+//           "groupStorage",
+//           JSON.stringify(dataStorage.groups)
+//         );
+//         LOCAL_STORAGE.setItem("linkStorage", JSON.stringify(dataStorage.links));
+//         main
+//           .querySelectorAll<HTMLAnchorElement>(
+//             `a[data-group="${span!.innerText}"]`
+//           )
+//           .forEach((anchor) => {
+//             anchor.dataset.group = linkEditor.inputs.group.value;
+//           });
+//         span!.innerText = linkEditor.inputs.group.value;
+//         span!.removeAttribute("style");
+//         (span!.parentElement?.firstChild as HTMLInputElement).dataset.group =
+//           linkEditor.inputs.group.value;
 
-        linkEditor.inputs.group.remove();
-        linkEditor.prepareGroupDatalist();
-      });
-      return;
-  }
-}
+//         linkEditor.inputs.group.remove();
+//         linkEditor.prepareGroupDatalist();
+//       });
+//       return;
+//   }
+// }
 fieldset.addEventListener("click", function (event: any): any {
   if (event.target.tagName === "BUTTON") {
     const action = event.target.innerText;
@@ -261,17 +263,17 @@ fieldset.addEventListener("click", function (event: any): any {
     }
   }
 });
-fieldset.addEventListener("contextmenu", function (event: MouseEvent): void {
-  event.preventDefault();
-  const TARGET = event.target as HTMLSpanElement;
-  if (
-    TARGET.tagName !== "SPAN" ||
-    TARGET.parentElement == fieldset.children[1] ||
-    TARGET.parentElement == fieldset.children[2]
-  )
-    return;
-  configureGroupNameInput("rename", TARGET);
-});
+// fieldset.addEventListener("contextmenu", function (event: MouseEvent): void {
+//   event.preventDefault();
+//   const TARGET = event.target as HTMLSpanElement;
+//   if (
+//     TARGET.tagName !== "SPAN" ||
+//     TARGET.parentElement == fieldset.children[1] ||
+//     TARGET.parentElement == fieldset.children[2]
+//   )
+//     return;
+//   configureGroupNameInput("rename", TARGET);
+// });
 function searchOneLink() {
   if (
     (document.querySelector('input[type="search"]') as HTMLInputElement)
@@ -346,7 +348,7 @@ function setEventListeners() {
     });
     searchButton.addEventListener("click", searchOneLink);
   } catch (error: any) {
-    console.log("!EVENT-LISTENERS' ERROR! - " + error.message);
+    console.error("!EVENT-LISTENERS' ERROR! - " + error.message);
   }
 }
 setEventListeners();

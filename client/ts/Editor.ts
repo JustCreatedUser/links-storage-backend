@@ -122,7 +122,6 @@ class LinkEditor extends Editor {
             u: this.inputs.url.value,
             g: this.inputs.group.value,
           });
-
           var saveMethod: requestMethod = "PATCH";
           saveOptions = {
             type: "link",
@@ -175,12 +174,12 @@ class LinkEditor extends Editor {
           this.close();
         },
         () => {
-          console.log("reject");
+          console.warn("reject");
           alert("Invalid link name, URL or group");
         }
       )
       .catch((error) => {
-        console.log("!!!" + error.message);
+        console.error("!!!" + error.message);
       });
   }
   delete(): void {
@@ -230,9 +229,7 @@ class LinkEditor extends Editor {
   }
   verifyFilterGroup() {
     if (!this.editItem) return;
-    if (
-      ![...dataStorage.groups, "Ungrouped"].includes(this.inputs.group.value)
-    ) {
+    if (!dataStorage.groups.getAlmostALL().includes(this.inputs.group.value)) {
       this.inputs.group.value = this.editItem.group;
       alert("This group doesn't exist");
       return;
@@ -255,25 +252,23 @@ class LinkEditor extends Editor {
         !/https?:\/\//g.test(linkEditor.inputs.url.value),
       isLinkGroupNotValid =
         !linkEditor.inputs.group.value ||
-        ![...dataStorage.groups, "Ungrouped"].includes(
-          linkEditor.inputs.group.value
-        );
+        !dataStorage.groups
+          .getAlmostALL()
+          .includes(linkEditor.inputs.group.value);
     return !(isLinkNameNotValid || isLinkURLNotValid || isLinkGroupNotValid);
   }
   prepareGroupDatalist() {
     linkEditor.groupDatalist.innerHTML = "";
-    const allMeaningfulGroups = [...dataStorage.groups, "Ungrouped"];
     linkEditor.groupDatalist.append(
-      ...allMeaningfulGroups.reduce(
-        (groups: HTMLOptionElement[], group: string) => {
+      ...dataStorage.groups
+        .getAlmostALL()
+        .reduce((groups: HTMLOptionElement[], group: string) => {
           const option = document.createElement("option");
           option.value = group;
           option.innerText = group;
           groups.push(option);
           return groups;
-        },
-        []
-      )
+        }, [])
     );
   }
   prepareFieldsForEditing(event: MouseEvent) {
@@ -312,8 +307,6 @@ export const linkEditor = new LinkEditor({
         group: document.getElementById("groupInput") as HTMLInputElement,
       };
       if (Object.values(object).some((data) => !data)) {
-        console.log(Object.values(object));
-
         console.error("!LinkEditor html ERROR!");
       }
 
@@ -327,7 +320,6 @@ export const linkEditor = new LinkEditor({
         name: document.getElementById("nameInput") as HTMLInputElement,
       };
       if (Object.values(object).some((data) => !data)) {
-        console.log(Object.values(object));
         console.error("!groupEditor html ERROR!");
       }
       return object;

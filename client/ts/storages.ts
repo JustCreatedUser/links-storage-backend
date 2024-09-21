@@ -1,7 +1,7 @@
 import { LOCAL_STORAGE } from "./main.js";
 import { Link, LinkEdits, LinkInDatabase } from "./storage-data.js";
 
-export class DataStorage {
+class DataStorage {
   private _links = new LinkArray([]);
   private _groups = new GroupArray([]);
   constructor() {}
@@ -29,9 +29,8 @@ export class LinkArray extends Array<Link> {
           const { description, group, url } = link;
           const newLink = new Link(description, url, group);
           this.safeAdd(newLink);
-        } catch (error) {
-          console.log(error);
-
+        } catch (error: any) {
+          console.error("!Database creating error! - " + error.message);
           isMemoryValid = false;
         }
       });
@@ -102,6 +101,12 @@ export class GroupArray extends Array<string> {
     if (prevVal === currentVal) return;
     let index = this.findIndex((group) => group === prevVal);
     this[index] = currentVal;
+  }
+  getAlmostALL(): string[] {
+    return [...this, "Ungrouped"];
+  }
+  getALL(): string[] {
+    return [...this.getAlmostALL(), "All"];
   }
 }
 export default DataStorage;
