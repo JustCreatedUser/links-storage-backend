@@ -280,6 +280,10 @@ main div {
   }
 }
 #dark-theme:checked {
+  ~ .results-showing-text {
+    color: white;
+    border-color: white;
+  }
   ~ main {
     .no-links_warning {
       color: white;
@@ -308,4 +312,23 @@ main div {
 }
 form {
   display: none;
+}
+.results-showing-text {
+  justify-content: center;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-left: calc(40px * var(--scale-08-below-650px));
+  font-size: calc(26px * var(--scale-08-below-650px));
+  color: black;
+  border: 2px solid;
+  border-color: black;
+  width: fit-content;
+  padding: 5px;
+  border-radius: 10px;
+}
+#resultsGroup {
+  max-width: calc(250px * var(--scale-08-below-650px));
+  overflow-wrap: break-word;
+  display: inline-block;
 }

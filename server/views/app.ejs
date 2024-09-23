@@ -1,7 +1,10 @@
 <link rel="stylesheet" href="/css/app.css" />
 <script defer type="module" src="/main.js"></script>
 <%- include('./partials/sidebar.ejs') %>
-
+<h2 class="results-showing-text">
+  Results for group " <span id="resultsGroup">All</span> ":
+  <span id="resultsCount">0</span>
+</h2>
 <main data-display="<%= app %>"></main>
 <section class="editor link-editor">
   <div>

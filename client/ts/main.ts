@@ -2,6 +2,8 @@ import { accountDbRequest } from "./connect-db.js";
 import * as editors from "./Editor.js";
 import { sidebar } from "./SidebarFunctions.js";
 const { groupEditor, linkEditor } = editors;
+const resultsGroup = document.getElementById("resultsGroup")!,
+  resultsCount = document.getElementById("resultsCount")!;
 export const main = document.querySelector("main") as HTMLElement;
 export const LOCAL_STORAGE: Storage = (() => {
   if (main.dataset.display == "local") {
@@ -73,9 +75,11 @@ export function showLinksToUser(group: string, elementToShow: "group" | Link) {
     elementToShow === "group"
       ? dataStorage.links.filterByGroup(group)
       : [elementToShow];
+  resultsGroup.innerText = elementToShow === "group" ? group : elementToShow.d;
+  resultsCount.innerText = `${filteredArray.length}`;
   if (filteredArray.length === 0) {
     const warning = document.createElement("p");
-    warning.textContent = `No links found for "${group}"`;
+    warning.textContent = `Nothing yet`;
     warning.className = "no-links_warning";
     main.appendChild(warning);
   } else
