@@ -41,11 +41,19 @@ router
     });
   })
   .use(dbRouter)
-  .get("/users/:user", goToAccountPage)
+  .get("/users/:user", authMiddleware, goToAccountPage)
   .get("/local-app", renderLocalApp)
   .get("/main-app", authMiddleware, renderMainApp)
   .post("/login", signIn)
   .post("/users", createUser)
   .delete("/users/:user", deleteUser)
-  .get("/logout", logout);
+  .get("/logout", logout)
+  .get("*", (req, res) => {
+    res.status(404).render("error-page-info", {
+      headerTitle: "Page not found",
+      url: req.originalUrl,
+      isUserRegistered: false,
+      metaPageDescription: "This page is not valid. Search for another one",
+    });
+  });
 export default router;

@@ -1,0 +1,18 @@
+<style>
+  body > h1 {
+    margin-left: 20px;
+  }
+  body h1 ~ a {
+    color: red;
+    margin: 10px 20px;
+  }
+</style>
+<h1 style="color: red">url "<%= locals.url %>" was not found</h1>
+
+<a href="/login">Login</a>
+<a href="/register">Register</a>
+<a href="/local-app">Local version</a>
+<% if (locals.isUserRegistered) { %>
+<a href="/users/<%= locals.userURL %>"><%= locals.username %></a>
+<a href="/main-app">Main app</a>
+<% } %>
