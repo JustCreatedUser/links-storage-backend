@@ -10,6 +10,7 @@ import {
   goToAccountPage,
   deleteUser,
   logout,
+  isPersonVerifiedForRequest,
 } from "../controllers";
 import dbRouter from "./db";
 router
@@ -46,7 +47,7 @@ router
   .get("/main-app", authMiddleware, renderMainApp)
   .post("/login", signIn)
   .post("/users", createUser)
-  .delete("/users/:user", deleteUser)
+  .delete("/users/:user", isPersonVerifiedForRequest, deleteUser)
   .get("/logout", logout)
   .get("*", (req, res) => {
     res.status(404).render("error-page-info", {

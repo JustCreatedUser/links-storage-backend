@@ -20,8 +20,14 @@ export function authMiddleware(req: any, res: any, next: any) {
 export async function createUser(req: any, res: any) {
   console.log("post createUser");
   try {
-    const { username, password } = req.body,
-      hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10)),
+    const { username, password } = req.body as { [key: string]: string },
+      isUsernameNoValid = username.length < 3 || username.length > 20,
+      isPasswordNotValid = password.length < 4;
+
+    if (isUsernameNoValid || isPasswordNotValid)
+      throw new Error("Can't save the user. Change password or name");
+
+    const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10)),
       userRegisteredInDB = await USER_SCHEMA.findOne({
         username: username,
       });
@@ -41,6 +47,7 @@ export async function createUser(req: any, res: any) {
     res.status(200).redirect(`/main-app`);
   } catch (error: any) {
     console.error("!createUser ERROR! - " + error.message);
+    res.status(400).send(error.message);
   }
 }
 export function renderLocalApp(_: any, res: any) {
@@ -123,6 +130,7 @@ export async function goToAccountPage(req: any, res: any) {
 export async function deleteUser(req: any, res: any) {
   try {
     const userId = req.params.user;
+
     await USER_SCHEMA.findByIdAndDelete(userId);
     res.status(200).redirect("/login");
   } catch (error: any) {
@@ -206,6 +214,7 @@ export async function isPersonVerifiedForRequest(
     next();
   } catch (error) {
     console.error(error.message);
+    res.status(401).send("You are unauthorized");
   }
 }
 export async function createNewData(req: any, res: any) {

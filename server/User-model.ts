@@ -7,10 +7,9 @@ const UserSchema = new mongoose.Schema({
     unique: true,
     validate: {
       validator: (username: string) => {
-        // Add validation for username format and length
-        return username.length >= 3;
+        return username.length >= 3 && username.length <= 20;
       },
-      message: () => "Invalid username format or length",
+      message: () => "Invalid username length",
     },
   },
   password: {
